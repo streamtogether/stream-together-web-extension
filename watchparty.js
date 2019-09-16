@@ -102,8 +102,10 @@ class WatchParty extends Peer {
         if (!this.parsing) {
             for (var i = 0; i < this.connectionsArray.length; i++) {
                 var connection = this.connectionsArray[i]
-                console.log('Sending... ', data);
-                connection.send(data);
+                if (connection.peer !== data.sender){
+                    console.log('Sending... ', data);
+                    connection.send(data);
+                }
             }
         }
     }
