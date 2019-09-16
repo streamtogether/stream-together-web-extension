@@ -13,7 +13,13 @@
         },
         {
             "matches": ["https://www.youtube.com/watch*"],
-            "js": ["connectors/youtube.js"]
+            "js": ["connectors/youtube.js"],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": ["https://www.primevideo.com/detail/*", "https://www.primevideo.com/*/detail/*"],
+            "js": ["connectors/primevideo.js"],
+            "run_at": "document_idle"
         }
     ],
     "browser_action": {},

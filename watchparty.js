@@ -6,6 +6,7 @@ class WatchParty extends Peer {
 
     constructor() {
         super();
+        this.connectionInit();
         this.status = 0 // Statuses: 0 = waiting, 1 = client, 2 = server
         console.log("Watch party loaded.");
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -30,7 +31,7 @@ class WatchParty extends Peer {
     detectPeerId() {
         const peerId = new URL(window.location.href).searchParams.get('watchParty');
         if (peerId !== null) {
-            this.connectionInit();
+            console.log('Detected autojoin');
             this.join(peerId);
         }
     }
@@ -70,11 +71,8 @@ class WatchParty extends Peer {
 
     parsing = false;
     handleConnection(conn) {
-        console.log('Handling connection...')
-        this.connectionsArray.push(conn);
-
-        // Todo settimeout check connected...
         conn.on('open', () => {
+            this.connectionsArray.push(conn);
             console.log('Connected.');
             if (this.status === 1){
                 this.onClientConnect(); // Ask for updates, eventually
@@ -92,7 +90,7 @@ class WatchParty extends Peer {
                     }
                 }
             });
-        });
+        })
     }
 
     sendMessage(data) {
