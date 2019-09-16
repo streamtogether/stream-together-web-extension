@@ -1,0 +1,26 @@
+{
+    "manifest_version": 2,
+    "name": "Watch Party",
+    "description": "Watch party",
+    "version": "0.0.1",
+    "background": {
+        "scripts": ["action.js"]
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["lib/jquery.slim.min.js", "lib/peerjs.min.js", "watchparty.js"]
+        },
+        {
+            "matches": ["https://www.youtube.com/watch*"],
+            "js": ["connectors/youtube.js"]
+        }
+    ],
+    "browser_action": {},
+    "permissions": ["activeTab", "clipboardWrite", "webRequest", "*://stun.l.google.com/*", "*://0.peerjs.com/*"],
+    "applications": {
+        "gecko": {
+            "id": "watchparty@mrsheepsheep.fr"
+        }
+    }
+}
