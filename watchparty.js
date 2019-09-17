@@ -8,10 +8,11 @@ class WatchParty extends Peer {
         super();
         this.connectionInit();
         this.status = 0 // Statuses: 0 = waiting, 1 = client, 2 = server
-        console.log("Watch party loaded.");
+
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             this.host();
         });
+
         this.detectPeerId();
     }
 
@@ -36,18 +37,25 @@ class WatchParty extends Peer {
         }
     }
 
+    shareUrl;
+
+    defaultShareUrl() {
+        const shareUrl = new URL(window.location.href);
+        shareUrl.searchParams.append('watchParty', this.id);  
+        return shareUrl.href;
+    }
+
     host() {
         this.status = 2;
         this.connectionInit();
 
-        const shareUrl = new URL(window.location.href);
-        shareUrl.searchParams.append('watchParty', this.id);    
-
+        const share = this.shareUrl ? this.shareUrl : this.defaultShareUrl();
+        
         navigator.permissions.query({
             name: "clipboard-write"
         }).then(result => {
             if (result.state == "granted" || result.state == "prompt") {
-                navigator.clipboard.writeText(shareUrl.href).then(function () {
+                navigator.clipboard.writeText(share).then(function () {
                     alert('URL has been copied to your clipboard. Share with anyone !');
                 }, function (error) {
                     alert('Error while trying to access clipboard. URL has been pasted in console.');
@@ -56,7 +64,7 @@ class WatchParty extends Peer {
             }
         });
 
-        console.log('Share URL: ', shareUrl.href)
+        console.log('Share URL: ', share)
 
         this.on('connection', (conn) => {
             this.handleConnection(conn);
@@ -82,8 +90,8 @@ class WatchParty extends Peer {
         conn.on('open', () => {
             this.connectionsArray.push(conn);
             console.log('Connected.');
-            if (this.status === 1){
-                this.onClientConnect(); // Ask for updates, eventually
+            if (this.status === 2){
+                this.onClientConnect(); // Send updates to the newly connected client
             }
             conn.on('data', (data) => {
                 console.log('Received', data);

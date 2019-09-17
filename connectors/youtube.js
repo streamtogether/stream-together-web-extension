@@ -26,14 +26,6 @@ var registerEvents = () => {
 party.onReceive = (data) => {
     $("video").off();
     switch (data.command) {
-        case "hello":
-            // Send back current info
-            party.sendMessage({
-                command: 'update',
-                paused: player.paused,
-                timeStamp: player.timeStamp
-            })
-            break;
         case "update":
             player.currentTime = data.currentTime;
             if (data.paused) {
@@ -57,7 +49,11 @@ party.onReceive = (data) => {
 }
 
 party.onClientConnect = () => {
-    party.sendMessage({ command: 'hello' })
+    party.sendMessage({
+        command: 'update',
+        paused: player.paused,
+        currentTime: player.currentTime
+    })
 }
 
 registerEvents();

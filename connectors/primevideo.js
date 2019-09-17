@@ -3,6 +3,8 @@ const init = () => {
     var player = $("video")[0]
 
     var party = new WatchParty();
+    // Set share URL
+    party.shareUrl.searchParams.append('autoplay', 1);
 
     var registerEvents = () => {
         $("video").off();
@@ -28,14 +30,6 @@ const init = () => {
     party.onReceive = (data) => {
         $("video").off();
         switch (data.command) {
-            case "hello":
-                // Send back current info
-                party.sendMessage({
-                    command: 'update',
-                    paused: player.paused,
-                    timeStamp: player.timeStamp
-                })
-                break;
             case "update":
                 player.currentTime = data.currentTime;
                 if (data.paused) {
@@ -59,7 +53,11 @@ const init = () => {
     }
 
     party.onClientConnect = () => {
-        party.sendMessage({ command: 'hello' })
+        party.sendMessage({
+            command: 'update',
+            paused: player.paused,
+            timeStamp: player.timeStamp
+        })
     }
 
     registerEvents();
