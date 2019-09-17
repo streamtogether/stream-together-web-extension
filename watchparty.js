@@ -1,6 +1,6 @@
 class WatchParty extends Peer {
 
-    connectionsArray = []
+    connectionsArray = [];
     onClientConnect;
     onReceive;
 
@@ -67,10 +67,18 @@ class WatchParty extends Peer {
         this.status = 1;
         var conn = this.connect(peerId);
         this.handleConnection(conn);
+
+        setTimeout(() => {
+            if (this.connectionsArray.length === 0){
+                console.log('Reconnection');
+                this.reconnect();
+            }
+        }, 500)
     }
 
     parsing = false;
     handleConnection(conn) {
+        console.log('Handling connection...');
         conn.on('open', () => {
             this.connectionsArray.push(conn);
             console.log('Connected.');
