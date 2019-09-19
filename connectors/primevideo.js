@@ -1,12 +1,22 @@
-const init = () => {
+function init() {
 
-    var player = $("video")[0]
+    var players = document.querySelectorAll("video");
+    players[0].remove();
+    var player = players[players.length - 1];
 
     var party = new WatchParty();
-    // Set share URL
-    party.shareUrl.searchParams.append('autoplay', 1);
+    
+    party.on('open', (id) => {
+        // Set share URL
+        var share = new URL(window.location.href)
+        share.searchParams.append('watchParty', id)
+        share.searchParams.append('autoplay', 1);
+        party.shareUrl = share.href;
+        console.log(share);
+    })
 
-    var registerEvents = () => {
+
+    function registerEvents() {
         $("video").off();
         $("video")
             .on("play", (e) => {
@@ -56,23 +66,20 @@ const init = () => {
         party.sendMessage({
             command: 'update',
             paused: player.paused,
-            timeStamp: player.timeStamp
+            currentTime: player.currentTime
         })
     }
 
     registerEvents();
-
 }
 
-$(document).ready(function() {
-    // Wait for video player to show up
-    const check = setInterval(() => {
-        console.log('Checking player');
-        if (document.querySelector('.dv-player-fullscreen') !== null){
-            console.log('Player found');
-            console.log($(".dv-player-fullscreen"))
-            clearInterval(check)
-            init();
-        }
-    }, 500)
-})
+// Wait for video player to show up
+const check = setInterval(() => {
+    console.log('Checking player');
+    if (document.querySelector('.dv-player-fullscreen') !== null && document.querySelectorAll('video').length > 0){
+        console.log('Player found');
+        console.log($(".dv-player-fullscreen"))
+        clearInterval(check)
+        init();
+    }
+}, 500)
