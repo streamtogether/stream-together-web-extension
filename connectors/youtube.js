@@ -45,7 +45,9 @@ party.onReceive = (data) => {
                 break;
             case "seeked":
                 player.currentTime = data.currentTime;
-                party.notify('Changed time', data.sender + ' moved to ' + data.currentTime)
+                const minutes = parseInt(data.currentTime / 60)
+                const seconds = data.currentTime % 60;
+                party.notify('Changed time', data.sender + ' moved to ' + minutes + ':' + seconds)
                 break;
         }
         $("video").on('canplaythrough', registerEvents)
