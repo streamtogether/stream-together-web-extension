@@ -3,6 +3,7 @@ function init() {
     var players = document.querySelectorAll("video");
     players[0].remove();
     var player = players[players.length - 1];
+    player.style('visibility', 'visible');
 
     var party = new WatchParty();
     
@@ -76,7 +77,7 @@ function init() {
 // Wait for video player to show up
 const check = setInterval(() => {
     console.log('Checking player');
-    if (document.querySelector('.dv-player-fullscreen') !== null && document.querySelectorAll('video').length > 0){
+    if (document.querySelector('.dv-player-fullscreen') !== null && document.querySelectorAll('video').length > 1){
         console.log('Player found');
         console.log($(".dv-player-fullscreen"))
         clearInterval(check)
