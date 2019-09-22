@@ -3,7 +3,7 @@ function init() {
     var players = document.querySelectorAll("video");
     players[0].remove();
     var player = players[players.length - 1];
-    player.style('visibility', 'visible');
+    $(player).css('visibility', 'visible');
 
     var party = new WatchParty();
     
@@ -42,13 +42,15 @@ function init() {
         $("video").off();
         switch (data.command) {
             case "update":
-                player.currentTime = data.currentTime;
-                if (data.paused) {
-                    $(player).trigger('pause');
-                } else {
-                    $(player).trigger('play');
-                }
-                break;
+                setTimeout(() => {
+                    player.currentTime = data.currentTime;
+                    if (data.paused) {
+                        $(player).trigger('pause');
+                    } else {
+                        $(player).trigger('play');
+                    }
+                    break;
+                }, 200);
             case "play":
                 $(player).trigger('play');
                 break;
