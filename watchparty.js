@@ -91,7 +91,7 @@ class WatchParty extends Peer {
             this.connectionsArray.push(conn);
             console.log('Connected.');
             if (this.status === 2){
-                this.onClientConnect(); // Send updates to the newly connected client
+                this.onClientConnect(conn.peer); // Send updates to the newly connected client
             }
             conn.on('data', (data) => {
                 console.log('Received', data);
@@ -122,5 +122,17 @@ class WatchParty extends Peer {
                 }
             }
         }
+    }
+
+    notify(title, message) {
+        chrome.runtime.sendMessage({
+            command: 'notify',
+            options: {
+                iconUrl: chrome.extension.getURL("logo.png"),
+                type: 'basic',
+                title,
+                message
+            }
+        })
     }
 }

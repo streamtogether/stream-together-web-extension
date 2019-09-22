@@ -4,7 +4,7 @@
     "description": "Watch party",
     "version": "0.0.1",
     "background": {
-        "scripts": ["action.js"]
+        "scripts": ["action.js", "notifications.js"]
     },
     "content_scripts": [
         {
@@ -23,7 +23,7 @@
         }
     ],
     "browser_action": {},
-    "permissions": ["activeTab", "clipboardWrite", "webRequest", "*://stun.l.google.com/*", "*://0.peerjs.com/*"],
+    "permissions": ["notifications", "activeTab", "clipboardWrite", "webRequest", "*://stun.l.google.com/*", "*://0.peerjs.com/*"],
     "applications": {
         "gecko": {
             "id": "watchparty@mrsheepsheep.fr"

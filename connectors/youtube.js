@@ -25,27 +25,31 @@ var registerEvents = () => {
 
 party.onReceive = (data) => {
     $("video").off();
-    switch (data.command) {
-        case "update":
-            player.currentTime = data.currentTime;
-            if (data.paused) {
-                $(player).trigger('pause');
-            } else {
+        switch (data.command) {
+            case "update":
+                party.notify('Connected', 'Connected to ' + data.sender)
+                player.currentTime = data.currentTime;
+                if (data.paused) {
+                    $(player).trigger('pause');
+                } else {
+                    $(player).trigger('play');
+                }
+                break;
+            case "play":
                 $(player).trigger('play');
-            }
-            break;
-        case "play":
-            $(player).trigger('play');
-            break;
-        case "pause":
-            $(player).trigger('pause');
-            break;
-        case "seeked":
-            player.currentTime = data.currentTime;
-            break;
-    }
-    $("video").on('canplaythrough', registerEvents)
-    setTimeout(registerEvents, 1000)
+                party.notify('Resumed', data.sender + ' resumed the video.')
+                break;
+            case "pause":
+                $(player).trigger('pause');
+                party.notify('Paused', data.sender + ' paused the video.')
+                break;
+            case "seeked":
+                player.currentTime = data.currentTime;
+                party.notify('Changed time', data.sender + ' moved to ' + data.currentTime)
+                break;
+        }
+        $("video").on('canplaythrough', registerEvents)
+        setTimeout(registerEvents, 1000)
 }
 
 party.onClientConnect = () => {
@@ -54,6 +58,8 @@ party.onClientConnect = () => {
         paused: player.paused,
         currentTime: player.currentTime
     })
+    notify('Connected', id + ' is connected.')
+
 }
 
 registerEvents();

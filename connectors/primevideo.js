@@ -13,7 +13,6 @@ function init() {
         share.searchParams.append('watchParty', id)
         share.searchParams.append('autoplay', 1);
         party.shareUrl = share.href;
-        console.log(share);
     })
 
 
@@ -42,35 +41,38 @@ function init() {
         $("video").off();
         switch (data.command) {
             case "update":
-                setTimeout(() => {
-                    player.currentTime = data.currentTime;
-                    if (data.paused) {
-                        $(player).trigger('pause');
-                    } else {
-                        $(player).trigger('play');
-                    }
-                    break;
-                }, 200);
+                party.notify('Connected', 'Connected to ' + data.sender)
+                player.currentTime = data.currentTime;
+                if (data.paused) {
+                    $(player).trigger('pause');
+                } else {
+                    $(player).trigger('play');
+                }
+                break;
             case "play":
                 $(player).trigger('play');
+                party.notify('Resumed', data.sender + ' resumed the video.')
                 break;
             case "pause":
                 $(player).trigger('pause');
+                party.notify('Paused', data.sender + ' paused the video.')
                 break;
             case "seeked":
                 player.currentTime = data.currentTime;
+                party.notify('Changed time', data.sender + ' moved to ' + data.currentTime)
                 break;
         }
         $("video").on('canplaythrough', registerEvents)
-        setTimeout(registerEvents, 1000)
+        setTimeout(registerEvents, 1000)    
     }
 
-    party.onClientConnect = () => {
+    party.onClientConnect = (id) => {
         party.sendMessage({
             command: 'update',
             paused: player.paused,
             currentTime: player.currentTime
         })
+        notify('Connected', id + ' is connected.')
     }
 
     registerEvents();
