@@ -8,6 +8,7 @@ https://github.com/peers/peerjs
 
 # Licence
 Watchparty is a web extension providing synchronization between browsers on Youtube, Prime Video, Netflix, ...
+
 Copyright (C) 2019 Alexandre Souleau
 
 This program is free software: you can redistribute it and/or modify
