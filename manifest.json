@@ -2,28 +2,27 @@
     "manifest_version": 2,
     "name": "Watch Party",
     "description": "Watch party",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "background": {
-        "scripts": ["action.js", "notifications.js"]
+        "scripts": ["action.js"]
     },
-    "content_scripts": [
-        {
-            "matches": ["<all_urls>"],
-            "js": ["lib/jquery.slim.min.js", "lib/peerjs.min.js", "watchparty.js"]
-        },
-        {
-            "matches": ["https://www.youtube.com/watch*"],
-            "js": ["connectors/youtube.js"],
-            "run_at": "document_idle"
-        },
-        {
-            "matches": ["https://www.primevideo.com/detail/*", "https://www.primevideo.com/*/detail/*"],
-            "js": ["connectors/primevideo.js"],
-            "run_at": "document_idle"
-        }
+    "content_scripts": [{
+        "matches": ["<all_urls>"],
+        "js": ["src/js/monitor.js"]
+    }],
+    "web_accessible_resources": [
+        "src/js/*"
     ],
-    "browser_action": {},
-    "permissions": ["notifications", "activeTab", "clipboardWrite", "webRequest", "*://stun.l.google.com/*", "*://0.peerjs.com/*"],
+    "browser_action": {
+        "default_title": "Watch this video with a group"
+    },
+    "permissions": [
+        "activeTab",
+        "clipboardWrite",
+        "webRequest",
+        "*://stun.l.google.com/*",
+        "*://0.peerjs.com/*"
+    ],
     "applications": {
         "gecko": {
             "id": "watchparty@mrsheepsheep.fr"
