@@ -4,11 +4,13 @@
     "description": "Watch party",
     "version": "0.0.2",
     "background": {
-        "scripts": ["action.js"]
+        "scripts": ["action.js"],
+        "persistent": false
     },
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["src/js/monitor.js"]
+        "all_frames": true,
+        "js": ["src/js/loaders/monitor.js"]
     }],
     "web_accessible_resources": [
         "src/js/*"
@@ -17,11 +19,11 @@
         "default_title": "Watch this video with a group"
     },
     "permissions": [
-        "activeTab",
+        "tabs",
         "clipboardWrite",
-        "webRequest",
-        "*://stun.l.google.com/*",
-        "*://0.peerjs.com/*"
+        "notifications",
+        "http://*/*",
+        "https://*/*"
     ],
     "applications": {
         "gecko": {
