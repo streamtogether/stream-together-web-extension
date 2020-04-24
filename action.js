@@ -26,16 +26,16 @@ function onVideoDiscovered(frame) {
 }
 
 function onHostConnected(frame, peerId) {
-    const [ urlParams, tabURL, hashComponents ] = _parseTabURL(frame.tab.url);
+    const [ urlParams, tabURL, hash ] = _parseTabURL(frame.tab.url);
 
     urlParams.set('watchparty', peerId);
 
-    const nextHash = `${hashComponents.join('?')}?${urlParams.toString()}`
+    const nextHash = `${hash}?${urlParams.toString()}`
         .replace(/^[?]/, '');
 
     tabURL.hash = nextHash;
     chrome.tabs.executeScript(frame.tab.id, {
-        code: `window.location.hash = ${JSON.stringify(nextHash)}
+        code: `history.replaceState(null, null, ${JSON.stringify(nextHash ? `#${nextHash}` : ' ')});
 navigator.clipboard.writeText(${JSON.stringify(tabURL.href)}).then(() => {
     alert('Watch Party URL is copied to clipboard. Share it with friends who have this plugin!');
 }, (error) => {
@@ -54,13 +54,13 @@ function onSessionEnded(frame) {
 
     tabURL.hash = nextHash;
     chrome.tabs.executeScript(frame.tab.id, {
-        code: `window.location.hash = ${JSON.stringify(nextHash)}`
+        code: `history.replaceState(null, null, ${JSON.stringify(nextHash ? `#${nextHash}` : ' ')});`
     });
 }
 
 chrome.browserAction.onClicked.addListener((tab) => {
-    if (!videoFrame) {
-        chrome.tabs.executeScript(frame.tab.id, {
+    if (!videoFrame || tab.id !== videoFrame.tab.id) {
+        chrome.tabs.executeScript(tab.id, {
             code: `alert('Video is not detected or not compatible with WatchParty.')`
         });
     } else {
@@ -78,6 +78,13 @@ chrome.runtime.onMessage.addListener((data, frame) => {
         onHostConnected(frame, data.peerId);
     } else if (data.type === 'sessionEnded') {
         onSessionEnded(frame);
+
+        chrome.notifications.create({
+            iconUrl: chrome.extension.getURL("logo.png"),
+            type: 'basic',
+            title: 'WatchParty',
+            message: `Your host has left. You are watching independently.`
+        })
     } else if (data.type === 'peerConnected') {
         chrome.notifications.create({
             iconUrl: chrome.extension.getURL("logo.png"),

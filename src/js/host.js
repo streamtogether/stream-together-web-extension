@@ -3,6 +3,11 @@ import { Party } from "./session.js";
 export async function host() {
     const video = document.querySelector('video');
 
+    if (!video) {
+        alert('Unexpected host session with no video.');
+        return;
+    }
+
     await import('./lib/peerjs.min.js');
 
     const host = new Peer();

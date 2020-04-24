@@ -5,7 +5,10 @@ export class Party {
     #sessions = [];
 
     #transmitEvent = () => {
-        if (Date.now() - this.#lastEvent < 1000) { return; }
+        if (Date.now() - this.#lastEvent < 250) {
+            // Avoid transmitting events triggered via us receiving events
+            return;
+        }
         this.#sessions.forEach((session) => session.send({
             sender: this.#peer.id,
             paused: this.#video.paused,
