@@ -11,6 +11,7 @@ export async function host() {
     await import('./lib/peerjs.min.js');
 
     const host = new Peer();
+    const party = new Party(video, host);
 
     host.on('open', (id) => {
         chrome.runtime.sendMessage({
@@ -18,9 +19,10 @@ export async function host() {
             peerId: id
         });
 
-        const party = new Party(video, host);
         host.on('connection', (session) => {
             party.mergeSession(session, true);
         });
     });
+
+    host.on('error', party.endSession);
 }

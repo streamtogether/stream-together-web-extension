@@ -8,17 +8,13 @@ export function waitForElement(selector) {
             return;
         }
 
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                const nodes = Array.from(mutation.addedNodes);
-                for (const node of nodes) {
-                    if (node.matches && node.matches(selector)) {
-                        observer.disconnect();
-                        resolve(node);
-                        return;
-                    }
-                }
-            });
+        const observer = new MutationObserver(() => {
+            const element = document.querySelector(selector);
+
+            if (element) {
+                observer.disconnect();
+                resolve(element);
+            }
         });
 
         observer.observe(document.documentElement, { childList: true, subtree: true });

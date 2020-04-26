@@ -14,14 +14,16 @@ export async function monitor() {
                 await import('./lib/peerjs.min.js');
 
                 const peer = new Peer();
+                const party = new Party(video, peer);
 
                 peer.on('open', () => {
                     const session = peer.connect(data.hostId);
 
-                    const video = document.querySelector('video');
-                    const party = new Party(video, peer);
-                    party.mergeSession(session);
+                    session.on('open', () => party.mergeSession(session));
+                    session.on('error', party.endSession);
                 });
+
+                peer.on('error', party.endSession)
             }
         });
     }

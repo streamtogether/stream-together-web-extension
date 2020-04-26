@@ -1,14 +1,9 @@
 export class Party {
     #peer
     #video
-    #lastEvent = 0
     #sessions = [];
 
     #transmitEvent = () => {
-        if (Date.now() - this.#lastEvent < 250) {
-            // Avoid transmitting events triggered via us receiving events
-            return;
-        }
         this.#sessions.forEach((session) => session.send({
             sender: this.#peer.id,
             paused: this.#video.paused,
@@ -29,7 +24,7 @@ export class Party {
         }
     }
 
-    #endSession = (error) => {
+    endSession = (error) => {
         this.#sessions.forEach((session) => session.close());
         this.#peer.destroy();
 
@@ -65,16 +60,8 @@ export class Party {
         this.#sessions.push(session);
 
         session.on('data', (data) => {
-            if (data.sender === this.#peer.id) {
-                // Ignore messages from ourselves
-                return;
-            }
-
-            this.#lastEvent = Date.now();
             this.#receiveEvent(data);
         });
-
-        session.on('error', this.#endSession)
 
         if (isHost) {
             // The host should immediately transmit their current state.
@@ -86,10 +73,11 @@ export class Party {
                 peerCount: this.#sessions.length
             });
 
+            session.on('error', () => this.#notifyDisconnect(session));
             session.on('close', () => this.#notifyDisconnect(session));
         } else {
             // Participants should remove the hash if their host leaves
-            session.on('close', this.#endSession)
+            session.on('close', this.endSession);
         }
     }
 }
