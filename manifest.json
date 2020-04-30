@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Watch Party",
     "description": "Watch party",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "background": {
         "scripts": ["action.js"],
         "persistent": false
@@ -24,10 +24,5 @@
         "notifications",
         "http://*/*",
         "https://*/*"
-    ],
-    "applications": {
-        "gecko": {
-            "id": "watchparty@mrsheepsheep.fr"
-        }
-    }
+    ]
 }

@@ -1,4 +1,4 @@
-import { waitForElement } from "./lib/dom-wait.js";
+import { waitForElement } from "./dom-wait.js";
 import { Party } from "./session.js";
 
 export async function monitor() {
