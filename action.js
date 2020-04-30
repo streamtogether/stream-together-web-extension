@@ -2,18 +2,27 @@
 // the frame info to be used when our chrome.browserAction is clicked.
 let videoFrame;
 
-function _parseTabURL(url) {
+function parseURL(url) {
     const tabURL = new URL(url);
     const hashComponents = tabURL.hash.replace(/^[#]/, '').split('?');
-    const urlParams = new URLSearchParams(hashComponents.pop());
-    const hash = hashComponents.join('?'); // all hash components except ours
+    const urlParams = new URLSearchParams(hashComponents[1]);
 
-    return [ urlParams, tabURL, hash ];
+    return [ urlParams, tabURL, hashComponents ];
+}
+
+function updateURL(url, updateFn) {
+    const [ urlParams, tabURL, hashComponents ] = parseURL(url);
+
+    updateFn(urlParams);
+    hashComponents[1] = urlParams.toString();
+    tabURL.hash = hashComponents.join('?');
+
+    return tabURL;
 }
 
 function onVideoDiscovered(frame) {
     videoFrame = frame;
-    const [ urlParams ] = _parseTabURL(frame.tab.url);
+    const [ urlParams ] = parseURL(frame.tab.url);
 
     const hostId = urlParams.get('watchparty');
 
@@ -26,16 +35,12 @@ function onVideoDiscovered(frame) {
 }
 
 function onHostConnected(frame, peerId) {
-    const [ urlParams, tabURL, hash ] = _parseTabURL(frame.tab.url);
+    const tabURL = updateURL(frame.tab.url, (urlParams) => {
+        urlParams.set('watchparty', peerId);
+    });
 
-    urlParams.set('watchparty', peerId);
-
-    const nextHash = `${hash}?${urlParams.toString()}`
-        .replace(/^[?]/, '');
-
-    tabURL.hash = nextHash;
     chrome.tabs.executeScript(frame.tab.id, {
-        code: `history.replaceState(null, null, ${JSON.stringify(nextHash ? `#${nextHash}` : ' ')});
+        code: `history.replaceState(null, null, ${JSON.stringify(`${tabURL.pathname}${tabURL.hash}`)});
 navigator.clipboard.writeText(${JSON.stringify(tabURL.href)}).then(() => {
     alert('Watch Party URL is copied to clipboard. Share it with friends who have this plugin!');
 }, (error) => {
@@ -45,16 +50,12 @@ navigator.clipboard.writeText(${JSON.stringify(tabURL.href)}).then(() => {
 }
 
 function onSessionEnded(frame) {
-    const [ urlParams, tabURL, hash ] = _parseTabURL(frame.tab.url);
+    const tabURL = updateURL(frame.tab.url, (urlParams) => {
+        urlParams.delete('watchparty');
+    });
 
-    urlParams.delete('watchparty');
-
-    const nextHash = `${hash}?${urlParams.toString()}`
-        .replace(/^[?]/, '');
-
-    tabURL.hash = nextHash;
     chrome.tabs.executeScript(frame.tab.id, {
-        code: `history.replaceState(null, null, ${JSON.stringify(nextHash ? `#${nextHash}` : ' ')});`
+        code: `history.replaceState(null, null, ${JSON.stringify(`${tabURL.pathname}${tabURL.hash}`)});`
     });
 }
 
