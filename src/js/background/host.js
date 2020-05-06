@@ -7,9 +7,11 @@ export class Host {
 
   isReady = false
   id = null
+  onChangeFriends = () => {}
 
   #handleConnect = (conn) => {
     this.#friends.add(conn);
+    this.onChangeFriends(this.#friends.size, 1);
 
     conn.on('data', (data) => {
       this.#port.postMessage(data)
@@ -17,6 +19,7 @@ export class Host {
 
     conn.on('close', () => {
       this.#friends.delete(conn);
+      this.onChangeFriends(this.#friends.size, -1);
     });
   }
 
@@ -35,7 +38,7 @@ export class Host {
     this.#peer.on('connection', (conn) => {
       this.#handleConnect(conn);
       // for incoming connections, poll our video and transmit the status
-      setTimeout(() => port.postMessage({ type: 'poll' }), 250);
+      setTimeout(() => port.postMessage({ type: 'poll' }), 500);
     });
   }
 
