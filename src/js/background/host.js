@@ -1,4 +1,4 @@
-import '../lib/peerjs.min.js';
+import "../lib/peerjs.min.js";
 
 export class Host {
   #port
@@ -13,11 +13,11 @@ export class Host {
     this.#friends.add(conn);
     this.onChangeFriends(this.#friends.size, 1);
 
-    conn.on('data', (data) => {
+    conn.on("data", (data) => {
       this.#port.postMessage(data)
     });
 
-    conn.on('close', () => {
+    conn.on("close", () => {
       this.#friends.delete(conn);
       this.onChangeFriends(this.#friends.size, -1);
     });
@@ -26,7 +26,7 @@ export class Host {
   constructor(port) {
     this.#port = port;
 
-    this.#peer.on('open', (id) => {
+    this.#peer.on("open", (id) => {
       this.isReady = true;
       this.id = id;
     });
@@ -35,17 +35,21 @@ export class Host {
       this.#friends.forEach((conn) => conn.send(message));
     })
 
-    this.#peer.on('connection', (conn) => {
+    this.#peer.on("connection", (conn) => {
       this.#handleConnect(conn);
       // for incoming connections, poll our video and transmit the status
+<<<<<<< HEAD
       setTimeout(() => port.postMessage({ type: 'poll' }), 500);
+=======
+      setTimeout(() => port.postMessage({ type: "poll" }), 250);
+>>>>>>> Run eslint --fix
     });
   }
 
   connect(hostId) {
     const conn = this.#peer.connect(hostId);
 
-    conn.on('open', () => this.#handleConnect(conn));
+    conn.on("open", () => this.#handleConnect(conn));
   }
 
   destroy() {

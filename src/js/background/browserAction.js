@@ -2,6 +2,7 @@ import { sessions } from "./messenger.js";
 import { updateURL, parseURL } from "./url.js";
 
 chrome.browserAction.onClicked.addListener((tab) => {
+<<<<<<< HEAD
   if (sessions.has(tab.id)) {
     alert('This tab is already in a session.');
     return;
@@ -9,9 +10,12 @@ chrome.browserAction.onClicked.addListener((tab) => {
 
   const [ urlParams ] = parseURL(tab.url);
   const joinId = prompt('TBD: Host ID or blank:', urlParams.get('watchparty'));
+=======
+  const joinId = prompt("TBD: Host ID or blank:");
+>>>>>>> Run eslint --fix
 
   chrome.tabs.executeScript(tab.id, {
-    file: 'src/js-loaders/session.js',
+    file: "src/js-loaders/session.js",
     allFrames: true
   });
 
@@ -59,7 +63,7 @@ chrome.browserAction.onClicked.addListener((tab) => {
     } else if (i < 10) {
       setTimeout(() => next(++i), 500);
     } else {
-      alert('This tab does not have any compatible video');
+      alert("This tab does not have any compatible video");
     }
   })(0);
 });
