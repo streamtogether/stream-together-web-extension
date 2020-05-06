@@ -1,0 +1,43 @@
+:root {
+  --background-raw: 228, 228, 228;
+  --background: rgb(var(--background-raw));
+  --primary-raw: 43, 71, 100;
+  --primary: rgb(var(--primary-raw));
+  --secondary-raw: 68, 68, 68;
+  --secondary: rgb(var(--secondary-raw));
+  --success-raw: 0, 188, 140;
+  --success: rgb(var(--success-raw));
+  --info-raw: 52, 152, 219;
+  --info: rgb(var(--info-raw));
+  --warning-raw: 243, 156, 18;
+  --warning: rgb(var(--warning-raw));
+  --danger-raw: 231, 76, 60;
+  --danger: rgb(var(--danger-raw));
+  --light-raw: 248, 249, 250;
+  --light: rgb(var(--light-raw));
+  --dark-raw: 52, 58, 64;
+  --dark: rgb(var(--dark-raw));
+  --link-raw: 24, 144, 255;
+  --link: rgb(var(--link-raw));
+  --text-color: rgba(0, 0, 0, 0.65);
+  --heading-color: rgba(0, 0, 0, 0.85);
+  --disabled: rgba(0, 0, 0, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-raw: 65, 65, 65;
+    --background: rgb(var(--background-raw));
+    --text-color: rgba(255, 255, 255, 0.65);
+    --heading-color: rgba(255, 255, 255, 0.85);
+    --disabled: rgba(255, 255, 255, 0.25);
+    --primary-raw: 50, 113, 150;
+    --primary: rgb(var(--primary-raw));
+    --dark-raw: 35, 35, 35;
+    --dark: rgb(var(--dark-raw));
+    --light-raw: 241, 241, 241;
+    --light: rgb(var(--light-raw));
+    --secondary-raw: 144, 150, 155;
+    --secondary: rgb(var(--secondary-raw));
+  }
+}
