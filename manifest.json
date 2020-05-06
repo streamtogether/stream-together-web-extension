@@ -1,17 +1,12 @@
 {
     "manifest_version": 2,
     "name": "Watch Party",
-    "description": "Watch party",
+    "description": "Watch any video together with friends.",
     "version": "0.0.3",
     "background": {
-        "scripts": ["action.js"],
+        "scripts": ["src/js-loaders/background.js"],
         "persistent": false
     },
-    "content_scripts": [{
-        "matches": ["<all_urls>"],
-        "all_frames": true,
-        "js": ["src/js/loaders/monitor.js"]
-    }],
     "web_accessible_resources": [
         "src/js/*"
     ],
@@ -19,7 +14,7 @@
         "default_title": "Watch this video with a group"
     },
     "permissions": [
-        "tabs",
+        "activeTab",
         "clipboardWrite",
         "notifications",
         "http://*/*",
