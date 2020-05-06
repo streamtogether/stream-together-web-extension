@@ -7,17 +7,9 @@
         "scripts": ["src/js-loaders/background.js"],
         "persistent": false
     },
-    "web_accessible_resources": [
-        "src/js/*"
-    ],
+    "web_accessible_resources": ["src/js/*"],
     "browser_action": {
         "default_title": "Watch this video with a group"
     },
-    "permissions": [
-        "activeTab",
-        "clipboardWrite",
-        "notifications",
-        "http://*/*",
-        "https://*/*"
-    ]
+    "permissions": ["activeTab", "clipboardWrite", "notifications", "http://*/*", "https://*/*"]
 }
