@@ -7,7 +7,7 @@ export class Host {
 
   isReady = false
   id = null
-  onChangeFriends = () => {}
+  onChangeFriends = () => { }
 
   #handleConnect = (conn) => {
     this.#friends.add(conn);
@@ -38,11 +38,7 @@ export class Host {
     this.#peer.on("connection", (conn) => {
       this.#handleConnect(conn);
       // for incoming connections, poll our video and transmit the status
-<<<<<<< HEAD
-      setTimeout(() => port.postMessage({ type: 'poll' }), 500);
-=======
-      setTimeout(() => port.postMessage({ type: "poll" }), 250);
->>>>>>> Run eslint --fix
+      setTimeout(() => port.postMessage({ type: "poll" }), 500);
     });
   }
 
