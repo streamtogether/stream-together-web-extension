@@ -1,13 +1,13 @@
 {
     "manifest_version": 2,
-    "name": "Watch Party",
+    "name": "Stream Party",
     "description": "Watch any video together with friends.",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "background": {
-        "scripts": ["src/js-loaders/background.js"],
+        "scripts": ["js/background.js"],
         "persistent": false
     },
-    "web_accessible_resources": ["src/js/*"],
+    "web_accessible_resources": ["js/*"],
     "browser_action": {
         "default_title": "Watch this video with a group"
     },

@@ -1,12 +1,16 @@
-export function connect() {
-    const video = document.querySelector("video");
-    if (!video) {
+import { Message, MessageType } from "../Message";
+
+export function connect(): void {
+    const videoSearch = document.querySelector("video");
+    if (!videoSearch) {
         return;
     }
 
+    // See https://www.reddit.com/r/typescript/comments/beafzw/how_do_i_leverage_type_inference_for_nested/
+    const video = videoSearch;
     const port = chrome.runtime.connect();
 
-    function transmitEvent() {
+    function transmitEvent(): void {
         port.postMessage({
             type: "video",
             paused: video.paused,
@@ -14,8 +18,8 @@ export function connect() {
         });
     }
 
-    function handleEvent(message) {
-        if (message.type === "video") {
+    function handleEvent(message: Message): void {
+        if (message.type === MessageType.Video) {
             if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
                 // Allow up to 250ms of time difference between plays
                 video.currentTime = message.currentTime;
@@ -26,7 +30,7 @@ export function connect() {
             } else if (!video.paused && message.paused) {
                 video.pause();
             }
-        } else if (message.type === "poll") {
+        } else if (message.type === MessageType.Poll) {
             transmitEvent();
         }
     }
@@ -43,3 +47,5 @@ export function connect() {
         video.removeEventListener("seeked", transmitEvent);
     });
 }
+
+connect();

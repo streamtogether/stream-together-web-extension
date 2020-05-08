@@ -1,9 +1,12 @@
 {
-    "name": "watchparty",
-    "version": "0.0.1",
-    "description": "An attempt to clone Netflix Party, but also works on Youtube, Prime Video, ...",
+    "name": "chrome-extension-stream-party",
+    "version": "0.0.4",
+    "description": "Watch any video together with friends.",
     "scripts": {
-        "lint": "eslint ./src/"
+        "start": "webpack --watch",
+        "build": "webpack",
+        "lint": "eslint . --ext .ts",
+        "prettier": "prettier . --write"
     },
     "repository": {
         "type": "git",
@@ -15,11 +18,20 @@
     },
     "homepage": "https://github.com/mrsheepsheep/watchparty#readme",
     "devDependencies": {
-        "babel-eslint": "^10.1.0",
+        "@types/chrome": "0.0.107",
+        "@typescript-eslint/eslint-plugin": "^2.31.0",
+        "@typescript-eslint/parser": "^2.31.0",
+        "copy-webpack-plugin": "^5.1.1",
         "eslint": "^6.8.0",
+        "eslint-config-prettier": "^6.11.0",
         "husky": "^4.2.5",
         "lint-staged": "^10.2.2",
-        "prettier": "^2.0.5"
+        "npm-pack-zip": "^1.2.7",
+        "prettier": "^2.0.5",
+        "ts-loader": "^7.0.3",
+        "typescript": "^3.8.3",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.11"
     },
     "husky": {
         "hooks": {
@@ -27,11 +39,14 @@
         }
     },
     "lint-staged": {
-        "*.{css,js,jsx,ts,tsx,json,md,scss}": [
+        "*.{ts,json,md}": [
             "prettier --write"
         ],
-        "*.{js,jsx,ts,tsx}": [
+        "*.ts": [
             "eslint --fix"
         ]
+    },
+    "dependencies": {
+        "peerjs": "^1.2.0"
     }
 }

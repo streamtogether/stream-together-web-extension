@@ -1,30 +1,35 @@
-import { sessions } from "./messenger.js";
-import { updateURL, parseURL } from "./url.js";
+import { sessions } from "./messenger";
+import { updateURL, parseURL } from "./url";
 
 chrome.browserAction.onClicked.addListener(tab => {
-    if (sessions.has(tab.id)) {
+    const tabId = tab.id || 0;
+    const tabUrl = tab.url || "";
+
+    if (sessions.has(tabId)) {
         alert("This tab is already in a session.");
         return;
     }
 
-    const [urlParams] = parseURL(tab.url);
-    const joinId = prompt("TBD: Host ID or blank:", urlParams.get("watchparty"));
+    const { urlParams } = parseURL(tabUrl);
+    const joinId = prompt("TBD: Host ID or blank:", urlParams.get("watchparty") || "");
 
-    chrome.tabs.executeScript(tab.id, {
-        file: "src/js-loaders/session.js",
+    chrome.tabs.executeScript(tabId, {
+        file: "js/session.js",
         allFrames: true
     });
 
-    (function next(i) {
-        const host = sessions.get(tab.id);
+    (function next(i): void {
+        const host = sessions.get(tabId);
 
-        if (host && host.isReady) {
+        if (host && host.isReady && host.id) {
+            const hostId = host.id;
+
             chrome.browserAction.setBadgeText({
                 text: "0",
                 tabId: tab.id
             });
 
-            host.onChangeFriends = (count, delta) => {
+            host.onChangeFriends = (count, delta): void => {
                 chrome.browserAction.setBadgeText({
                     text: `${count}`,
                     tabId: tab.id
@@ -40,12 +45,12 @@ chrome.browserAction.onClicked.addListener(tab => {
                 });
             };
 
-            const shareURL = updateURL(tab.url, urlParams => {
-                urlParams.set("watchparty", host.id);
+            const shareURL = updateURL(tabUrl, urlParams => {
+                urlParams.set("watchparty", hostId);
             });
 
-            chrome.tabs.executeScript(tab.id, {
-                code: `history.replaceState(null, null, ${JSON.stringify(`${shareURL.pathname}${shareURL.hash}`)});`
+            chrome.tabs.executeScript(tabId, {
+                code: `history.replaceState(null, null, ${JSON.stringify(`${shareURL.href}`)});`
             });
 
             if (joinId) {
@@ -54,7 +59,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 navigator.clipboard
                     .writeText(shareURL.href)
                     .then(() =>
-                        alert("Video URL is copied to your clipboard. Share with friends " + "and have them click the extension to join!")
+                        alert("Video URL is copied to your clipboard. Share with friends and have them click the extension to join!")
                     )
                     .catch(err => alert(`Share the video URL below with friends:\n\n${shareURL.href}\n\n${err}`));
             }

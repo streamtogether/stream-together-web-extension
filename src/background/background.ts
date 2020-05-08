@@ -1,0 +1,2 @@
+import "./browserAction";
+import "./messenger";

@@ -1,19 +1,21 @@
-import "../lib/peerjs.min.js";
+import Peer from "peerjs";
+import { Message, MessageType } from "../Message";
 
 export class Host {
-    #port;
+    #port: chrome.runtime.Port;
     #peer = new Peer();
-    #friends = new Set();
+    #friends = new Set<Peer.DataConnection>();
 
-    isReady = false;
-    id = null;
-    onChangeFriends = () => {};
+    public isReady = false;
+    public id: string | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public onChangeFriends: (count: number, delta: number) => void = () => {};
 
-    #handleConnect = conn => {
+    #handleConnect = (conn: Peer.DataConnection): void => {
         this.#friends.add(conn);
         this.onChangeFriends(this.#friends.size, 1);
 
-        conn.on("data", data => {
+        conn.on("data", (data: Message) => {
             this.#port.postMessage(data);
         });
 
@@ -23,10 +25,10 @@ export class Host {
         });
     };
 
-    constructor(port) {
+    public constructor(port: chrome.runtime.Port) {
         this.#port = port;
 
-        this.#peer.on("open", id => {
+        this.#peer.on("open", (id: string) => {
             this.isReady = true;
             this.id = id;
         });
@@ -35,20 +37,20 @@ export class Host {
             this.#friends.forEach(conn => conn.send(message));
         });
 
-        this.#peer.on("connection", conn => {
+        this.#peer.on("connection", (conn: Peer.DataConnection) => {
             this.#handleConnect(conn);
             // for incoming connections, poll our video and transmit the status
-            setTimeout(() => port.postMessage({ type: "poll" }), 500);
+            setTimeout(() => port.postMessage({ type: MessageType.Poll }), 500);
         });
     }
 
-    connect(hostId) {
+    public connect(hostId: string): void {
         const conn = this.#peer.connect(hostId);
 
         conn.on("open", () => this.#handleConnect(conn));
     }
 
-    destroy() {
+    public destroy(): void {
         this.#peer.destroy();
     }
 }
