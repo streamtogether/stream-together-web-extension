@@ -1,16 +1,24 @@
+import { IFriend } from "./Friend";
+
 export enum MessageType {
     Video = "video",
-    Poll = "poll"
+    Poll = "poll",
+    Friend = "friend"
 }
 
-export interface VideoMessage {
-    type: MessageType.Video;
-    currentTime: number;
-    paused: boolean;
+export interface IVideoMessage {
+    readonly messageType: MessageType.Video;
+    readonly currentTime: number;
+    readonly paused: boolean;
 }
 
-export interface PollMessage {
-    type: MessageType.Poll;
+export interface IPollMessage {
+    readonly messageType: MessageType.Poll;
 }
 
-export type Message = VideoMessage | PollMessage;
+export interface IFriendMessage {
+    readonly messageType: MessageType.Friend;
+    readonly friends: IFriend[];
+}
+
+export type Message = IVideoMessage | IPollMessage | IFriendMessage;

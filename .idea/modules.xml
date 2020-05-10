@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/watchparty.iml" filepath="$PROJECT_DIR$/.idea/watchparty.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/streamparty.iml" filepath="$PROJECT_DIR$/.idea/streamparty.iml" />
     </modules>
   </component>
 </project>

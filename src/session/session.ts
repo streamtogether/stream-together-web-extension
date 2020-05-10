@@ -1,4 +1,4 @@
-import { Message, MessageType } from "../Message";
+import { Message, MessageType, IVideoMessage } from "../Message";
 
 export function connect(): void {
     const videoSearch = document.querySelector("video");
@@ -11,27 +11,34 @@ export function connect(): void {
     const port = chrome.runtime.connect();
 
     function transmitEvent(): void {
-        port.postMessage({
-            type: "video",
+        const videoMessage: IVideoMessage = {
+            messageType: MessageType.Video,
             paused: video.paused,
             currentTime: video.currentTime
-        });
+        };
+
+        port.postMessage(videoMessage);
     }
 
     function handleEvent(message: Message): void {
-        if (message.type === MessageType.Video) {
-            if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
-                // Allow up to 250ms of time difference between plays
-                video.currentTime = message.currentTime;
-            }
+        switch (message.messageType) {
+            case MessageType.Video:
+                if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
+                    // Allow up to 250ms of time difference between plays
+                    video.currentTime = message.currentTime;
+                }
 
-            if (video.paused && !message.paused) {
-                video.play();
-            } else if (!video.paused && message.paused) {
-                video.pause();
-            }
-        } else if (message.type === MessageType.Poll) {
-            transmitEvent();
+                if (video.paused && !message.paused) {
+                    video.play();
+                } else if (!video.paused && message.paused) {
+                    video.pause();
+                }
+                break;
+            case MessageType.Poll:
+                transmitEvent();
+                break;
+            default:
+                break;
         }
     }
 

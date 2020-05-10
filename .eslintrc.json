@@ -18,6 +18,9 @@
                 "browser": true,
                 "es6": true,
                 "webextensions": true
+            },
+            "rules": {
+                "@typescript-eslint/interface-name-prefix": [2, "always"]
             }
         },
         {

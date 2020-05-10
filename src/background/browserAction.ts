@@ -11,7 +11,7 @@ chrome.browserAction.onClicked.addListener(tab => {
     }
 
     const { urlParams } = parseURL(tabUrl);
-    const joinId = prompt("TBD: Host ID or blank:", urlParams.get("watchparty") || "");
+    const joinId = prompt("TBD: Host ID or blank:", urlParams.get("streamparty") || "");
 
     chrome.tabs.executeScript(tabId, {
         file: "js/session.js",
@@ -29,7 +29,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 tabId: tab.id
             });
 
-            host.onChangeFriends = (count, delta): void => {
+            host.subscribeToFriendChanges((count, delta) => {
                 chrome.browserAction.setBadgeText({
                     text: `${count}`,
                     tabId: tab.id
@@ -38,15 +38,15 @@ chrome.browserAction.onClicked.addListener(tab => {
                 chrome.notifications.create({
                     iconUrl: chrome.extension.getURL("logo.png"),
                     type: "basic",
-                    title: "WatchParty",
+                    title: "StreamParty",
                     message:
                         `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
                         `You now have ${count} watching.`
                 });
-            };
+            });
 
             const shareURL = updateURL(tabUrl, urlParams => {
-                urlParams.set("watchparty", hostId);
+                urlParams.set("streamparty", hostId);
             });
 
             chrome.tabs.executeScript(tabId, {
@@ -54,7 +54,7 @@ chrome.browserAction.onClicked.addListener(tab => {
             });
 
             if (joinId) {
-                host.connect(joinId);
+                host.connectToHost(joinId);
             } else {
                 navigator.clipboard
                     .writeText(shareURL.href)

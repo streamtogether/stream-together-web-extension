@@ -10,13 +10,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mrsheepsheep/watchparty.git"
+        "url": "git+https://github.com/streamparty/chrome-extension-stream-party.git"
     },
     "author": "",
     "bugs": {
-        "url": "https://github.com/mrsheepsheep/watchparty/issues"
+        "url": "https://github.com/streamparty/chrome-extension-stream-party/issues"
     },
-    "homepage": "https://github.com/mrsheepsheep/watchparty#readme",
+    "homepage": "https://github.com/streamparty/chrome-extension-stream-party#readme",
     "devDependencies": {
         "@types/chrome": "0.0.107",
         "@typescript-eslint/eslint-plugin": "^2.31.0",
