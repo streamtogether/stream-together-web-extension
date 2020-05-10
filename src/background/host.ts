@@ -33,6 +33,8 @@ export class Host {
         });
 
         port.onMessage.addListener(message => {
+            console.warn("Got message from port. Sending to friends");
+            console.warn(message);
             this.#friends.forEach(friend => friend.sendMessage(message));
         });
 
@@ -70,6 +72,7 @@ export class Host {
         shouldNotify && this.notifyFriendChanges(1);
 
         conn.on("data", (data: Message) => {
+            console.warn("got message from connection");
             switch (data.messageType) {
                 case MessageType.Friend:
                     this.handleFriendMessage(data);
@@ -92,6 +95,8 @@ export class Host {
      * @param message The friend message to process
      */
     private handleFriendMessage(message: IFriendMessage): void {
+        console.warn("got friend message");
+        console.warn(message);
         const numFriendsBefore = this.#friends.size;
         // List of ids used for cleaning up friends list after updates
         const newListIds: string[] = [];
@@ -102,6 +107,7 @@ export class Host {
 
             // Message will contain the current user id
             if (messageFriend.id !== this.id) {
+                console.warn(`Adding friend with id: ${messageFriend.id}`);
                 const newFriendInstance = new Friend(messageFriend.id, messageFriend.displayName, existingFriendPeerJsConnection);
                 this.#friends.set(messageFriend.id, newFriendInstance);
                 newListIds.push(messageFriend.id);
@@ -138,12 +144,15 @@ export class Host {
      * Method to handle when a peer connects to the current user if the current user is the host
      * @param conn The peer connection
      */
-    private onPeerConnectToHost(conn: Peer.DataConnection) {
+    private onPeerConnectToHost(conn: Peer.DataConnection): void {
         this.handleConnect(conn);
 
         // Notify everyone in the party with the updated friendslist
-        // Assert that the id below is non-null since we're receiving a connection which implies the id exists
-        const currentUser: IFriend = { id: this.id!, displayName: this.displayName };
+        if (this.id == null) {
+            return;
+        }
+
+        const currentUser: IFriend = { id: this.id, displayName: this.displayName };
         const friends = [];
         this.#friends.forEach(friend => {
             friends.push(friend.toSerializable());
@@ -152,7 +161,11 @@ export class Host {
         // Include the current user is the friend message so peers include the host in their friend list
         friends.push(currentUser);
         const friendMessage: IFriendMessage = { messageType: MessageType.Friend, friends };
-        this.#friends.forEach(friend => friend.sendMessage(friendMessage));
+        this.#friends.forEach(friend => {
+            console.warn(`Sending message to: ${friend.id}`);
+            console.warn(friendMessage);
+            friend.sendMessage(friendMessage);
+        });
 
         // For incoming connections, poll our video and transmit the status
         setTimeout(() => {

@@ -21,6 +21,8 @@ export function connect(): void {
     }
 
     function handleEvent(message: Message): void {
+        console.warn("Port received message");
+        console.warn(message);
         switch (message.messageType) {
             case MessageType.Video:
                 if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
@@ -35,6 +37,7 @@ export function connect(): void {
                 }
                 break;
             case MessageType.Poll:
+                console.warn("Calling transmit from poll");
                 transmitEvent();
                 break;
             default:
