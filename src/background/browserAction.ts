@@ -38,7 +38,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 chrome.notifications.create({
                     iconUrl: chrome.extension.getURL("logo.png"),
                     type: "basic",
-                    title: "StreamParty",
+                    title: "Stream Party",
                     message:
                         `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
                         `You now have ${count} watching.`

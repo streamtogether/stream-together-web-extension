@@ -1,5 +1,5 @@
 import Peer from "peerjs";
-import { Friend, IFriend } from "../Friend";
+import { IFriend, IFriendConnection } from "../Friend";
 import { IFriendMessage, Message, MessageType, IPollMessage } from "../Message";
 
 export class Host {
@@ -19,7 +19,7 @@ export class Host {
     #peer = new Peer();
 
     /** Map of friend ids to friends  */
-    #friends = new Map<string, Friend>();
+    #friends = new Map<string, IFriendConnection>();
 
     /** List of friend change subscribers */
     private friendChangeSubscribers: ((count: number, delta: number) => void)[] = [];
@@ -36,7 +36,7 @@ export class Host {
         });
 
         port.onMessage.addListener(message => {
-            this.#friends.forEach(friend => friend.sendMessage(message));
+            this.#friends.forEach(friend => friend.connection?.send(message));
         });
 
         this.#peer.on("connection", (conn: Peer.DataConnection) => {
@@ -68,7 +68,7 @@ export class Host {
      * @param conn The underlying data connection
      */
     private handleConnect(conn: Peer.DataConnection, shouldNotify = true): void {
-        const friend: Friend = new Friend(conn.peer, undefined, conn);
+        const friend: IFriendConnection = { id: conn.peer, displayName: "", connection: conn };
         this.#friends.set(friend.id, friend);
         shouldNotify && this.notifyFriendChanges(1);
 
@@ -105,8 +105,12 @@ export class Host {
 
             // Message will contain the current user id
             if (messageFriend.id !== this.id) {
-                const newFriendInstance = new Friend(messageFriend.id, messageFriend.displayName, existingFriendPeerJsConnection);
-                this.#friends.set(messageFriend.id, newFriendInstance);
+                const newFriendObj = {
+                    id: messageFriend.id,
+                    displayName: messageFriend.displayName,
+                    connection: existingFriendPeerJsConnection
+                };
+                this.#friends.set(messageFriend.id, newFriendObj);
                 newListIds.push(messageFriend.id);
             }
         }
@@ -151,21 +155,16 @@ export class Host {
         // Wait to send messages until peer has finished setting up their connection
         setTimeout(() => {
             // Notify everyone in the party with the updated friendslist
-            if (this.id == null) {
-                return;
-            }
-
-            const currentUser: IFriend = { id: this.id, displayName: this.displayName };
-            const friends = [];
+            const currentUser: IFriend = { id: this.id!, displayName: this.displayName };
+            // Include the current user is the friend message so peers include the host in their friend list
+            const friends: IFriend[] = [currentUser];
             this.#friends.forEach(friend => {
-                friends.push(friend.toSerializable());
+                friends.push({ id: friend.id, displayName: friend.displayName });
             });
 
-            // Include the current user is the friend message so peers include the host in their friend list
-            friends.push(currentUser);
             const friendMessage: IFriendMessage = { messageType: MessageType.Friend, friends };
             this.#friends.forEach(friend => {
-                friend.sendMessage(friendMessage);
+                friend.connection?.send(friendMessage);
             });
             const pollMessage: IPollMessage = { messageType: MessageType.Poll };
             this.#port.postMessage(pollMessage);
