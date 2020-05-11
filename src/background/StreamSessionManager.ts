@@ -91,6 +91,7 @@ export class StreamSessionManager {
      */
     public initializeStateAsSessionStarter(): void {
         console.warn("Init as session starter");
+        this.connectionState = ConnectionState.Connected;
         this.sessionState = {
             leaderId: this.currentUserId!,
             sessionJoinOrder: [this.currentUserId!],
@@ -305,6 +306,8 @@ export class StreamSessionManager {
             console.warn("got leader");
             console.warn(leader);
             leader?.connection?.send(request);
+
+            this.connectionState = ConnectionState.Connected;
         }, 500);
     }
 
