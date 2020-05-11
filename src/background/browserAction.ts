@@ -41,7 +41,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 } else {
                     message =
                         `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
-                        `You now have ${count} watching.`;
+                        `You now have ${count} in the party.`;
                 }
 
                 chrome.notifications.create({
@@ -61,7 +61,7 @@ chrome.browserAction.onClicked.addListener(tab => {
             });
 
             if (joinId) {
-                session.connectToPeer(joinId);
+                session.connectToPeer(joinId, true);
             } else {
                 session.initializeStateAsSessionStarter();
                 navigator.clipboard

@@ -3,7 +3,8 @@ import { ISerializableSessionState } from "./SessionState";
 export enum MessageType {
     Video = "video",
     Poll = "poll",
-    StateSync = "statesync"
+    StateSync = "statesync",
+    StateSyncRequest = "statesyncrequest"
 }
 
 export interface IVideoMessage {
@@ -21,4 +22,8 @@ export interface IStateSyncMessage {
     readonly state: ISerializableSessionState;
 }
 
-export type Message = IVideoMessage | IPollMessage | IStateSyncMessage;
+export interface IStateSyncRequestMessage {
+    readonly messageType: MessageType.StateSyncRequest;
+}
+
+export type Message = IVideoMessage | IPollMessage | IStateSyncMessage | IStateSyncRequestMessage;

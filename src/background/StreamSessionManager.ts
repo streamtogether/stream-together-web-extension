@@ -1,6 +1,6 @@
 import Peer from "peerjs";
 import { IUser, IUserConnection } from "../User";
-import { Message, MessageType, IStateSyncMessage } from "../Message";
+import { Message, MessageType, IStateSyncMessage, IStateSyncRequestMessage } from "../Message";
 import { ISessionState } from "../SessionState";
 
 export enum ConnectionState {
@@ -155,6 +155,9 @@ export class StreamSessionManager {
                 case MessageType.StateSync:
                     this.handleStateSyncMessage(data);
                     break;
+                case MessageType.StateSyncRequest:
+                    this.handleStateSyncRequestMessage();
+                    break;
                 default:
                     break;
             }
@@ -197,6 +200,26 @@ export class StreamSessionManager {
 
         // If we haven't found any other users who can control video, default to the oldest in the join order
         return this.sessionState.sessionJoinOrder[0];
+    }
+
+    /**
+     * Handler for state sync request messages
+     */
+    private handleStateSyncRequestMessage(): void {
+        console.warn("state sync requested");
+
+        if (this.sessionState.leaderId !== this.currentUserId) {
+            console.warn(`Received sync state request on ${this.currentUserId} but leader is: ${this.sessionState.leaderId}`);
+            return;
+        }
+
+        const stateSyncMessage = this.generateSyncStateMessageFromCurrentState();
+        this.sessionState.sessionUsers.forEach(user => {
+            if (user.id !== this.currentUserId) {
+                console.warn(`Sending sync state to: ${user.id}`);
+                user.connection?.send(stateSyncMessage);
+            }
+        });
     }
 
     /**
@@ -274,6 +297,15 @@ export class StreamSessionManager {
         });
 
         this.notifyUserCountChanges(this.sessionState.sessionUsers.size, true);
+
+        // Wait for new connections to form so the topology is set up correctly then request the latest state from leader
+        setTimeout(() => {
+            const request: IStateSyncRequestMessage = { messageType: MessageType.StateSyncRequest };
+            const leader = this.sessionState.sessionUsers.get(this.sessionState.leaderId);
+            console.warn("got leader");
+            console.warn(leader);
+            leader?.connection?.send(request);
+        }, 500);
     }
 
     /**
@@ -281,7 +313,7 @@ export class StreamSessionManager {
      * @param delta The change in amount of users in the party
      */
     private notifyUserCountChanges(delta: number, isSessionJoin: boolean): void {
-        this.onUserCountChange(this.sessionState.sessionUsers.size, delta, isSessionJoin);
+        this.onUserCountChange(this.sessionState.sessionUsers.size - 1, delta, isSessionJoin);
     }
 
     /**
@@ -301,14 +333,14 @@ export class StreamSessionManager {
         this.notifyUserCountChanges(1, false);
 
         if (connectionMetadata.connectionState === ConnectionState.ConnectingToPeer) {
-            console.warn("IZ BABY");
+            console.warn("Detected that the user is trying to join the topology");
             // We've received an initial request and need to provide the user with the current state so they can fully connect to the session
             // Current user will use this info to start connecting to all peers in the users list and init state
             // Once the connections have successfully been set up, the new user will request another state sync from the leader
             // Wait to send messages until peer has finished setting up their connection
             setTimeout(() => {
                 const stateSyncMessage = this.generateSyncStateMessageFromCurrentState();
-                console.warn("Sending state sync message to baby");
+                console.warn("Sending state sync message to joining user");
                 console.warn(stateSyncMessage);
                 conn.send(stateSyncMessage);
             }, 500);

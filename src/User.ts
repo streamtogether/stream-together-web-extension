@@ -8,5 +8,6 @@ export interface IUser {
 }
 
 export interface IUserConnection extends IUser {
+    // Connection can be undefined if it's the current user or if the user is still connecting to the session
     readonly connection?: Peer.DataConnection;
 }
