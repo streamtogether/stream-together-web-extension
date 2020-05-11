@@ -24,6 +24,9 @@ export class Host {
     /** List of friend change subscribers */
     private friendChangeSubscribers: ((count: number, delta: number) => void)[] = [];
 
+    /** Whether or not we've notified the current user of their party size */
+    private hasNotifiedPartySize = false;
+
     public constructor(port: chrome.runtime.Port) {
         this.#port = port;
 
@@ -124,8 +127,8 @@ export class Host {
         });
 
         const numFriendsAfter = this.#friends.size;
-        // If the number of friends changed, notify the current user
-        if (numFriendsBefore !== numFriendsAfter) {
+        // If the number of friends changed or if we haven't notified yet, notify the current user
+        if (numFriendsBefore !== numFriendsAfter || !this.hasNotifiedPartySize) {
             const delta = numFriendsAfter - numFriendsBefore;
             this.notifyFriendChanges(delta);
         }
@@ -136,6 +139,7 @@ export class Host {
      * @param delta The change in amount of friends in the party
      */
     private notifyFriendChanges(delta: number): void {
+        this.hasNotifiedPartySize = true;
         for (const cb of this.friendChangeSubscribers) {
             cb(this.#friends.size, delta);
         }
