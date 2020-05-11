@@ -105,6 +105,7 @@ export class StreamSessionManager {
      * @param [isReferral=false] Optional param that indicates that the peer we're connecting to is a referral
      */
     public connectToPeer(peerId: string, isReferral = false): void {
+        console.warn(`connect to peer: ${peerId} isReferral=${isReferral}`);
         if (isReferral) {
             this.connectionState = ConnectionState.ConnectingToPeer;
             this.connectToExistingSessionReferralId = peerId;
@@ -135,6 +136,7 @@ export class StreamSessionManager {
      * @param userDisplayName The name of the user who initiated the connection
      */
     private handleConnect(conn: Peer.DataConnection, userDisplayName: string): void {
+        console.warn("handleConnect");
         // Add new connection to local users
         const user: IUserConnection = {
             id: conn.peer,
@@ -147,6 +149,8 @@ export class StreamSessionManager {
         this.sessionState.sessionUsers.set(user.id, user);
 
         conn.on("data", (data: Message) => {
+            console.warn(`data from: ${conn.peer}`);
+            console.warn(data);
             switch (data.messageType) {
                 case MessageType.StateSync:
                     this.handleStateSyncMessage(data);
@@ -200,6 +204,7 @@ export class StreamSessionManager {
      * @param message The state sync message to process
      */
     private handleStateSyncMessage(message: IStateSyncMessage): void {
+        console.warn("handling state sync");
         const numUsersBefore = this.sessionState.sessionUsers.size;
         // List of ids used for cleaning up users list after updates
         const newListIds: string[] = [];
@@ -242,6 +247,8 @@ export class StreamSessionManager {
             sessionUsers: this.sessionState.sessionUsers
         };
 
+        console.warn(this.sessionState);
+
         if (this.connectionState === ConnectionState.ConnectingToPeer) {
             this.connectToSession();
         }
@@ -251,6 +258,7 @@ export class StreamSessionManager {
      * Connects the current user to the session
      */
     private connectToSession(): void {
+        console.warn(`Connecting to session. ReferralId: ${this.connectToExistingSessionReferralId}`);
         if (this.connectionState !== ConnectionState.ConnectingToPeer) {
             // This method should only be called once we've received state info from our contact
             // This indicates a bug in our code
