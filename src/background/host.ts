@@ -73,6 +73,7 @@ export class Host {
 
         conn.on("data", (data: Message) => {
             console.warn("got message from connection");
+            console.warn(data);
             switch (data.messageType) {
                 case MessageType.Friend:
                     this.handleFriendMessage(data);
@@ -147,28 +148,27 @@ export class Host {
     private onPeerConnectToHost(conn: Peer.DataConnection): void {
         this.handleConnect(conn);
 
-        // Notify everyone in the party with the updated friendslist
-        if (this.id == null) {
-            return;
-        }
-
-        const currentUser: IFriend = { id: this.id, displayName: this.displayName };
-        const friends = [];
-        this.#friends.forEach(friend => {
-            friends.push(friend.toSerializable());
-        });
-
-        // Include the current user is the friend message so peers include the host in their friend list
-        friends.push(currentUser);
-        const friendMessage: IFriendMessage = { messageType: MessageType.Friend, friends };
-        this.#friends.forEach(friend => {
-            console.warn(`Sending message to: ${friend.id}`);
-            console.warn(friendMessage);
-            friend.sendMessage(friendMessage);
-        });
-
-        // For incoming connections, poll our video and transmit the status
+        // Wait to send messages until peer has finished setting up their connection
         setTimeout(() => {
+            // Notify everyone in the party with the updated friendslist
+            if (this.id == null) {
+                return;
+            }
+
+            const currentUser: IFriend = { id: this.id, displayName: this.displayName };
+            const friends = [];
+            this.#friends.forEach(friend => {
+                friends.push(friend.toSerializable());
+            });
+
+            // Include the current user is the friend message so peers include the host in their friend list
+            friends.push(currentUser);
+            const friendMessage: IFriendMessage = { messageType: MessageType.Friend, friends };
+            this.#friends.forEach(friend => {
+                console.warn(`Sending message to: ${friend.id}`);
+                console.warn(friendMessage);
+                friend.sendMessage(friendMessage);
+            });
             const pollMessage: IPollMessage = { messageType: MessageType.Poll };
             this.#port.postMessage(pollMessage);
         }, 500);

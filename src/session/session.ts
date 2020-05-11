@@ -20,11 +20,24 @@ export function connect(): void {
         port.postMessage(videoMessage);
     }
 
+    function addEventListeners(): void {
+        video.addEventListener("play", transmitEvent);
+        video.addEventListener("pause", transmitEvent);
+        video.addEventListener("seeked", transmitEvent);
+    }
+
+    function removeEventListeners(): void {
+        video.removeEventListener("play", transmitEvent);
+        video.removeEventListener("pause", transmitEvent);
+        video.removeEventListener("seeked", transmitEvent);
+    }
+
     function handleEvent(message: Message): void {
         console.warn("Port received message");
         console.warn(message);
         switch (message.messageType) {
             case MessageType.Video:
+                removeEventListeners();
                 if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
                     // Allow up to 250ms of time difference between plays
                     video.currentTime = message.currentTime;
@@ -35,6 +48,8 @@ export function connect(): void {
                 } else if (!video.paused && message.paused) {
                     video.pause();
                 }
+
+                addEventListeners();
                 break;
             case MessageType.Poll:
                 console.warn("Calling transmit from poll");
@@ -45,16 +60,12 @@ export function connect(): void {
         }
     }
 
-    video.addEventListener("play", transmitEvent);
-    video.addEventListener("pause", transmitEvent);
-    video.addEventListener("seeked", transmitEvent);
+    addEventListeners();
 
     port.onMessage.addListener(handleEvent);
 
     port.onDisconnect.addListener(() => {
-        video.removeEventListener("play", transmitEvent);
-        video.removeEventListener("pause", transmitEvent);
-        video.removeEventListener("seeked", transmitEvent);
+        removeEventListeners();
     });
 }
 
