@@ -12,6 +12,9 @@ export class Host {
     /** The current user's chosen displayName */
     public displayName = "";
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public onChangeFriends: (count: number, delta: number) => void = () => {};
+
     /** See: https://developer.chrome.com/extensions/runtime#type-Port */
     #port: chrome.runtime.Port;
 
@@ -20,9 +23,6 @@ export class Host {
 
     /** Map of friend ids to friends  */
     #friends = new Map<string, IFriendConnection>();
-
-    /** List of friend change subscribers */
-    private friendChangeSubscribers: ((count: number, delta: number) => void)[] = [];
 
     /** Whether or not we've notified the current user of their party size */
     private hasNotifiedPartySize = false;
@@ -45,19 +45,11 @@ export class Host {
     }
 
     /**
-     * Subscribe to friend changes
-     * @param cb The callback to call when the friends list changes
+     * Connects to the given peerId
+     * @param peerId The id of the peer to connect to
      */
-    public subscribeToFriendChanges(cb: (count: number, delta: number) => void): void {
-        this.friendChangeSubscribers.push(cb);
-    }
-
-    /**
-     * Connects the current host to the given peer
-     * @param hostId The id of the host to connect to
-     */
-    public connectToHost(hostId: string): void {
-        const conn = this.#peer.connect(hostId);
+    public connectToPeer(peerId: string): void {
+        const conn = this.#peer.connect(peerId);
 
         // Handle the conenction to host but don't notify friend changes until the host sends the friend message
         conn.on("open", () => this.handleConnect(conn, false));
@@ -140,9 +132,7 @@ export class Host {
      */
     private notifyFriendChanges(delta: number): void {
         this.hasNotifiedPartySize = true;
-        for (const cb of this.friendChangeSubscribers) {
-            cb(this.#friends.size, delta);
-        }
+        this.onChangeFriends(this.#friends.size, delta);
     }
 
     /**
@@ -176,7 +166,5 @@ export class Host {
      */
     public destroy(): void {
         this.#peer.destroy();
-        // Release callbacks to avoid memory leak
-        this.friendChangeSubscribers = [];
     }
 }

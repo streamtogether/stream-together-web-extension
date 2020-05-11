@@ -29,7 +29,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 tabId: tab.id
             });
 
-            host.subscribeToFriendChanges((count, delta) => {
+            host.onChangeFriends = (count, delta): void => {
                 chrome.browserAction.setBadgeText({
                     text: `${count}`,
                     tabId: tab.id
@@ -43,7 +43,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                         `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
                         `You now have ${count} watching.`
                 });
-            });
+            };
 
             const shareURL = updateURL(tabUrl, urlParams => {
                 urlParams.set("streamparty", hostId);
@@ -54,7 +54,7 @@ chrome.browserAction.onClicked.addListener(tab => {
             });
 
             if (joinId) {
-                host.connectToHost(joinId);
+                host.connectToPeer(joinId);
             } else {
                 navigator.clipboard
                     .writeText(shareURL.href)
