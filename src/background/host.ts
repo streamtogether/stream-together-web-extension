@@ -127,8 +127,11 @@ export class Host {
         });
 
         const numFriendsAfter = this.#friends.size;
-        // If the number of friends changed or if we haven't notified yet, notify the current user
-        if (numFriendsBefore !== numFriendsAfter || !this.hasNotifiedPartySize) {
+        if (!this.hasNotifiedPartySize) {
+            // We now know the starting party size so notify the current user
+            this.notifyFriendChanges(this.#friends.size);
+        } else if (numFriendsBefore !== numFriendsAfter) {
+            // If the number of friends changed, notify the current user
             const delta = numFriendsAfter - numFriendsBefore;
             this.notifyFriendChanges(delta);
         }
