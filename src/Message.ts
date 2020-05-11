@@ -1,9 +1,9 @@
-import { IFriend } from "./Friend";
+import { ISerializableSessionState } from "./SessionState";
 
 export enum MessageType {
     Video = "video",
     Poll = "poll",
-    Friend = "friend"
+    StateSync = "statesync"
 }
 
 export interface IVideoMessage {
@@ -16,9 +16,9 @@ export interface IPollMessage {
     readonly messageType: MessageType.Poll;
 }
 
-export interface IFriendMessage {
-    readonly messageType: MessageType.Friend;
-    readonly friends: IFriend[];
+export interface IStateSyncMessage {
+    readonly messageType: MessageType.StateSync;
+    readonly state: ISerializableSessionState;
 }
 
-export type Message = IVideoMessage | IPollMessage | IFriendMessage;
+export type Message = IVideoMessage | IPollMessage | IStateSyncMessage;

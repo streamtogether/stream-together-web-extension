@@ -1,15 +1,15 @@
-import { Host } from "./host";
+import { StreamSessionManager } from "./StreamSessionManager";
 
-export const sessions = new Map<number, Host>();
+export const sessions = new Map<number, StreamSessionManager>();
 
 chrome.runtime.onConnect.addListener(port => {
     const tabId = port.sender?.tab?.id || 0;
-    const host = new Host(port);
+    const sessionManager = new StreamSessionManager(port);
 
-    sessions.set(tabId, host);
+    sessions.set(tabId, sessionManager);
 
     port.onDisconnect.addListener(() => {
         sessions.delete(tabId);
-        host.destroy();
+        sessionManager.destroy();
     });
 });

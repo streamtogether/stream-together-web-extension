@@ -1,10 +1,10 @@
-export interface ParsedURL {
+export interface IParsedURL {
     urlParams: URLSearchParams;
     tabURL: URL;
     hashComponents: string[];
 }
 
-export function parseURL(url: string): ParsedURL {
+export function parseURL(url: string): IParsedURL {
     const tabURL = new URL(url);
     const hashComponents = tabURL.hash.replace(/^[#]/, "").split("?");
     const urlParams = new URLSearchParams(hashComponents[1]);

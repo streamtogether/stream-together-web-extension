@@ -19,34 +19,41 @@ chrome.browserAction.onClicked.addListener(tab => {
     });
 
     (function next(i): void {
-        const host = sessions.get(tabId);
+        const session = sessions.get(tabId);
 
-        if (host && host.isReady && host.id) {
-            const hostId = host.id;
+        if (session && session.isReady && session.currentUserId) {
+            const userId = session.currentUserId;
 
             chrome.browserAction.setBadgeText({
                 text: "0",
                 tabId: tab.id
             });
 
-            host.onChangeFriends = (count, delta): void => {
+            session.onUserCountChange = (count, delta, isSessionJoin): void => {
                 chrome.browserAction.setBadgeText({
                     text: `${count}`,
                     tabId: tab.id
                 });
 
+                let message: string;
+                if (isSessionJoin) {
+                    message = `You have joined a party of ${count}!`;
+                } else {
+                    message =
+                        `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
+                        `You now have ${count} watching.`;
+                }
+
                 chrome.notifications.create({
                     iconUrl: chrome.extension.getURL("logo.png"),
                     type: "basic",
                     title: "Stream Party",
-                    message:
-                        `${Math.abs(delta) === 1 ? "A" : Math.abs(delta)} friend has ${delta > 0 ? "joined" : "left"}. ` +
-                        `You now have ${count} watching.`
+                    message
                 });
             };
 
             const shareURL = updateURL(tabUrl, urlParams => {
-                urlParams.set("streamparty", hostId);
+                urlParams.set("streamparty", userId);
             });
 
             chrome.tabs.executeScript(tabId, {
@@ -54,8 +61,9 @@ chrome.browserAction.onClicked.addListener(tab => {
             });
 
             if (joinId) {
-                host.connectToPeer(joinId);
+                session.connectToPeer(joinId);
             } else {
+                session.initializeStateAsSessionStarter();
                 navigator.clipboard
                     .writeText(shareURL.href)
                     .then(() =>
