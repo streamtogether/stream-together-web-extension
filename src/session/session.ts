@@ -33,8 +33,6 @@ export function connect(): void {
     }
 
     function handleEvent(message: Message): void {
-        console.warn("Port received message");
-        console.warn(message);
         switch (message.messageType) {
             case MessageType.Video:
                 removeEventListeners();
@@ -52,7 +50,6 @@ export function connect(): void {
                 addEventListeners();
                 break;
             case MessageType.Poll:
-                console.warn("Calling transmit from poll");
                 transmitEvent();
                 break;
             default:

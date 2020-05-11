@@ -36,8 +36,6 @@ export class Host {
         });
 
         port.onMessage.addListener(message => {
-            console.warn("Got message from port. Sending to friends");
-            console.warn(message);
             this.#friends.forEach(friend => friend.sendMessage(message));
         });
 
@@ -75,8 +73,6 @@ export class Host {
         shouldNotify && this.notifyFriendChanges(1);
 
         conn.on("data", (data: Message) => {
-            console.warn("got message from connection");
-            console.warn(data);
             switch (data.messageType) {
                 case MessageType.Friend:
                     this.handleFriendMessage(data);
@@ -99,8 +95,6 @@ export class Host {
      * @param message The friend message to process
      */
     private handleFriendMessage(message: IFriendMessage): void {
-        console.warn("got friend message");
-        console.warn(message);
         const numFriendsBefore = this.#friends.size;
         // List of ids used for cleaning up friends list after updates
         const newListIds: string[] = [];
@@ -111,7 +105,6 @@ export class Host {
 
             // Message will contain the current user id
             if (messageFriend.id !== this.id) {
-                console.warn(`Adding friend with id: ${messageFriend.id}`);
                 const newFriendInstance = new Friend(messageFriend.id, messageFriend.displayName, existingFriendPeerJsConnection);
                 this.#friends.set(messageFriend.id, newFriendInstance);
                 newListIds.push(messageFriend.id);
@@ -172,8 +165,6 @@ export class Host {
             friends.push(currentUser);
             const friendMessage: IFriendMessage = { messageType: MessageType.Friend, friends };
             this.#friends.forEach(friend => {
-                console.warn(`Sending message to: ${friend.id}`);
-                console.warn(friendMessage);
                 friend.sendMessage(friendMessage);
             });
             const pollMessage: IPollMessage = { messageType: MessageType.Poll };
