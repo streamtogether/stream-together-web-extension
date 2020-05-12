@@ -1,4 +1,4 @@
-import { Message, MessageType } from "../Message";
+import { LocalInMessage, LocalOutMessage, MessageType } from "../Message";
 
 export function connect(): void {
     const videoSearch = document.querySelector("video");
@@ -11,14 +11,18 @@ export function connect(): void {
     const port = chrome.runtime.connect();
 
     function transmitEvent(): void {
-        port.postMessage({
-            type: "video",
+        const message: LocalOutMessage = {
+            type: MessageType.Video,
             paused: video.paused,
             currentTime: video.currentTime
-        });
+        };
+        port.postMessage(message);
     }
 
-    function handleEvent(message: Message): void {
+    /* eslint-disable @typescript-eslint/no-use-before-define */
+    function handleEvent(message: LocalInMessage): void {
+        clearListeners();
+
         if (message.type === MessageType.Video) {
             if (Math.abs(video.currentTime - message.currentTime) > 0.25) {
                 // Allow up to 250ms of time difference between plays
@@ -33,18 +37,27 @@ export function connect(): void {
         } else if (message.type === MessageType.Poll) {
             transmitEvent();
         }
+
+        addListeners();
+    }
+    /* eslint-enable @typescript-eslint/no-use-before-define */
+
+    function addListeners(): void {
+        video.addEventListener("play", transmitEvent);
+        video.addEventListener("pause", transmitEvent);
+        video.addEventListener("seeked", transmitEvent);
     }
 
-    video.addEventListener("play", transmitEvent);
-    video.addEventListener("pause", transmitEvent);
-    video.addEventListener("seeked", transmitEvent);
-
-    port.onMessage.addListener(handleEvent);
-
-    port.onDisconnect.addListener(() => {
+    function clearListeners(): void {
         video.removeEventListener("play", transmitEvent);
         video.removeEventListener("pause", transmitEvent);
         video.removeEventListener("seeked", transmitEvent);
+    }
+
+    addListeners();
+    port.onMessage.addListener(handleEvent);
+    port.onDisconnect.addListener(() => {
+        clearListeners();
     });
 }
 
