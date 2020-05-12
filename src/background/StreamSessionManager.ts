@@ -87,9 +87,9 @@ export class StreamSessionManager {
     }
 
     /**
-     * Initializes the state if the current user is leader of the current session
+     * Sets up initial state for when the current user is creating a new session
      */
-    public initializeStateAsSessionStarter(): void {
+    public startSession(): void {
         console.warn("Init as session starter");
         this.connectionState = ConnectionState.Connected;
         this.sessionState = {
@@ -101,7 +101,7 @@ export class StreamSessionManager {
     }
 
     /**
-     * Connects to a a peer. Can be used to start a session join if the current ConnectionState is Disconnected
+     * Connects to a peer. Can be used to start a session join if the current ConnectionState is Disconnected
      * @param peerId The id of the peer to initially connect to
      * @param [isReferral=false] Optional param that indicates that the peer we're connecting to is a referral
      */
@@ -167,25 +167,33 @@ export class StreamSessionManager {
         });
 
         conn.on("close", () => {
-            this.sessionState.sessionUsers.delete(user.id);
-            this.sessionState.sessionJoinOrder.splice(this.sessionState.sessionJoinOrder.indexOf(user.id), 1);
-            this.notifyUserCountChanges(-1, false);
-            if (user.id === this.sessionState.leaderId) {
-                const newLeaderId = this.determineNewLeaderId();
-                this.sessionState = { ...this.sessionState, leaderId: newLeaderId };
-                if (newLeaderId === this.currentUserId) {
-                    // If the current user is the new leader, they should do a full sync after a processing wait
-                    setTimeout(() => {
-                        const syncStateMessage = this.generateSyncStateMessageFromCurrentState();
-                        this.sessionState.sessionUsers.forEach(user => {
-                            if (user.id !== this.currentUserId) {
-                                user.connection?.send(syncStateMessage);
-                            }
-                        });
-                    }, 500);
-                }
-            }
+            this.handleDisconnect(user.id);
         });
+    }
+
+    /**
+     * Handler for when a user disconnects from the session
+     * @param userId The id of the user who disconnected
+     */
+    private handleDisconnect(userId: string): void {
+        this.sessionState.sessionUsers.delete(userId);
+        this.sessionState.sessionJoinOrder.splice(this.sessionState.sessionJoinOrder.indexOf(userId), 1);
+        this.notifyUserCountChanges(-1, false);
+        if (userId === this.sessionState.leaderId) {
+            const newLeaderId = this.determineNewLeaderId();
+            this.sessionState = { ...this.sessionState, leaderId: newLeaderId };
+            if (newLeaderId === this.currentUserId) {
+                // If the current user is the new leader, they should do a full sync after a processing wait
+                setTimeout(() => {
+                    const syncStateMessage = this.generateSyncStateMessageFromCurrentState();
+                    this.sessionState.sessionUsers.forEach(user => {
+                        if (user.id !== this.currentUserId) {
+                            user.connection?.send(syncStateMessage);
+                        }
+                    });
+                }, 500);
+            }
+        }
     }
 
     /**
@@ -329,7 +337,7 @@ export class StreamSessionManager {
         // Push newly connected user to the end of the session join order
         this.sessionState.sessionJoinOrder.push(conn.peer);
 
-        const connectionMetadata: IConnectToPeerMetadata = conn.metadata as IConnectToPeerMetadata;
+        const connectionMetadata: IConnectToPeerMetadata = conn.metadata;
         console.warn("connection md");
         console.warn(connectionMetadata);
         this.handleConnect(conn, connectionMetadata.userDisplayName);

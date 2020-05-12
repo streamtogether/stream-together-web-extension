@@ -63,7 +63,7 @@ chrome.browserAction.onClicked.addListener(tab => {
             if (joinId) {
                 session.connectToPeer(joinId, true);
             } else {
-                session.initializeStateAsSessionStarter();
+                session.startSession();
                 navigator.clipboard
                     .writeText(shareURL.href)
                     .then(() =>
