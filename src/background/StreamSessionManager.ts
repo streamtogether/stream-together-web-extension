@@ -61,9 +61,6 @@ export class StreamSessionManager {
                     canControlVideo: true
                 }
             });
-
-            console.warn("ctor - updated session state");
-            console.warn(this.sessionState);
         });
 
         port.onMessage.addListener(message => {
@@ -90,14 +87,12 @@ export class StreamSessionManager {
      * Sets up initial state for when the current user is creating a new session
      */
     public startSession(): void {
-        console.warn("Init as session starter");
         this.connectionState = ConnectionState.Connected;
         this.sessionState = {
             leaderId: this.currentUserId!,
             sessionJoinOrder: [this.currentUserId!],
             sessionUsers: this.sessionState.sessionUsers
         };
-        console.warn(this.sessionState);
     }
 
     /**
@@ -106,7 +101,6 @@ export class StreamSessionManager {
      * @param [isReferral=false] Optional param that indicates that the peer we're connecting to is a referral
      */
     public connectToPeer(peerId: string, isReferral = false): void {
-        console.warn(`connect to peer: ${peerId} isReferral=${isReferral}`);
         if (isReferral) {
             this.connectionState = ConnectionState.ConnectingToPeer;
             this.connectToExistingSessionReferralId = peerId;
@@ -137,7 +131,6 @@ export class StreamSessionManager {
      * @param userDisplayName The name of the user who initiated the connection
      */
     private handleConnect(conn: Peer.DataConnection, userDisplayName: string): void {
-        console.warn("handleConnect");
         // Add new connection to local users
         const user: IUserConnection = {
             id: conn.peer,
@@ -150,8 +143,6 @@ export class StreamSessionManager {
         this.sessionState.sessionUsers.set(user.id, user);
 
         conn.on("data", (data: Message) => {
-            console.warn(`data from: ${conn.peer}`);
-            console.warn(data);
             switch (data.messageType) {
                 case MessageType.StateSync:
                     this.handleStateSyncMessage(data);
@@ -215,17 +206,13 @@ export class StreamSessionManager {
      * Handler for state sync request messages
      */
     private handleStateSyncRequestMessage(): void {
-        console.warn("state sync requested");
-
         if (this.sessionState.leaderId !== this.currentUserId) {
-            console.warn(`Received sync state request on ${this.currentUserId} but leader is: ${this.sessionState.leaderId}`);
             return;
         }
 
         const stateSyncMessage = this.generateSyncStateMessageFromCurrentState();
         this.sessionState.sessionUsers.forEach(user => {
             if (user.id !== this.currentUserId) {
-                console.warn(`Sending sync state to: ${user.id}`);
                 user.connection?.send(stateSyncMessage);
             }
         });
@@ -236,7 +223,6 @@ export class StreamSessionManager {
      * @param message The state sync message to process
      */
     private handleStateSyncMessage(message: IStateSyncMessage): void {
-        console.warn("handling state sync");
         const numUsersBefore = this.sessionState.sessionUsers.size;
         // List of ids used for cleaning up users list after updates
         const newListIds: string[] = [];
@@ -279,8 +265,6 @@ export class StreamSessionManager {
             sessionUsers: this.sessionState.sessionUsers
         };
 
-        console.warn(this.sessionState);
-
         if (this.connectionState === ConnectionState.ConnectingToPeer) {
             this.connectToSession();
         }
@@ -290,7 +274,6 @@ export class StreamSessionManager {
      * Connects the current user to the session
      */
     private connectToSession(): void {
-        console.warn(`Connecting to session. ReferralId: ${this.connectToExistingSessionReferralId}`);
         if (this.connectionState !== ConnectionState.ConnectingToPeer) {
             // This method should only be called once we've received state info from our contact
             // This indicates a bug in our code
@@ -311,8 +294,6 @@ export class StreamSessionManager {
         setTimeout(() => {
             const request: IStateSyncRequestMessage = { messageType: MessageType.StateSyncRequest };
             const leader = this.sessionState.sessionUsers.get(this.sessionState.leaderId);
-            console.warn("got leader");
-            console.warn(leader);
             leader?.connection?.send(request);
 
             this.connectionState = ConnectionState.Connected;
@@ -332,27 +313,20 @@ export class StreamSessionManager {
      * @param conn The peer connection
      */
     private onNewConnection(conn: Peer.DataConnection): void {
-        console.warn("got new connection");
-        console.warn(conn);
         // Push newly connected user to the end of the session join order
         this.sessionState.sessionJoinOrder.push(conn.peer);
 
         const connectionMetadata: IConnectToPeerMetadata = conn.metadata;
-        console.warn("connection md");
-        console.warn(connectionMetadata);
         this.handleConnect(conn, connectionMetadata.userDisplayName);
         this.notifyUserCountChanges(1, false);
 
         if (connectionMetadata.connectionState === ConnectionState.ConnectingToPeer) {
-            console.warn("Detected that the user is trying to join the topology");
             // We've received an initial request and need to provide the user with the current state so they can fully connect to the session
             // Current user will use this info to start connecting to all peers in the users list and init state
             // Once the connections have successfully been set up, the new user will request another state sync from the leader
             // Wait to send messages until peer has finished setting up their connection
             setTimeout(() => {
                 const stateSyncMessage = this.generateSyncStateMessageFromCurrentState();
-                console.warn("Sending state sync message to joining user");
-                console.warn(stateSyncMessage);
                 conn.send(stateSyncMessage);
             }, 500);
         }
