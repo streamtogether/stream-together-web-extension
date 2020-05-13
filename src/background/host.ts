@@ -1,22 +1,28 @@
 import Debug from "debug";
 import Peer from "peerjs";
-import { Friend, LocalOutMessage, LocalPollMessage, MessageType, RemoteMessage } from "../Message";
-
-export interface FriendConnected extends Friend {
-    conn: Peer.DataConnection;
-}
+import { LocalOutMessage, LocalPollMessage, MessageType, RemoteMessage } from "../Message";
+import { Friend, FriendConnected } from "../Friend";
 
 export class Host {
     #log = Debug("peer:disconnected");
+
+    /** Our connection to the browser tab */
     #port: chrome.runtime.Port;
+    /** Our network connection for listening for joiners */
     #peer = new Peer();
-
+    /** All the people in this party (except ourselves), and their metadata */
     #friends = new Map<string, FriendConnected>();
-
+    /** Metadata about ourselves, to share with others */
     public personalData: Friend | null = null;
+    /** Event handler for updating the badge or showing notification */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public onChangeFriends: (count: number, delta: number) => void = () => {};
 
+    /**
+     * Ensures that all friends described by someone in this party are already part of our group.
+     * @param friends The members someone else knows about.
+     * @param conn The peer that emitted this friend set.
+     */
     #ensureConnections = (friends: Friend[], conn: Peer.DataConnection): void => {
         if (!this.personalData) {
             return;
@@ -31,7 +37,7 @@ export class Host {
                 // update member data without touching `friend.conn`
                 this.#friends.set(member.id, {
                     ...member,
-                    ...friend
+                    conn: friend.conn
                 });
             } else if (member.id === conn.peer) {
                 // insert the person we connected to, now that we know their info
@@ -40,13 +46,19 @@ export class Host {
                     conn
                 });
                 this.onChangeFriends(this.#friends.size, 1);
-            } else {
-                // for new people, just go connect to them (& hopefully they aren't doing the same)
+            } else if (member.id < this.personalData.id) {
+                // connect to new peer if we're alphanumerically higher (this prevents double-connecting)
                 this.connect(member.id);
             }
         }
     };
 
+    /**
+     * Handle a new connection, both as incoming (where `metadata` will be their info), and
+     * outgoing, where we need to learn of their metadata.
+     * @param conn The peer that is a new connection.
+     * @param isIncoming Whether `conn.metadata` will describe them or ourselves.
+     */
     #handleConnect = (conn: Peer.DataConnection, isIncoming: boolean): void => {
         if (!this.personalData) {
             return;
@@ -73,11 +85,10 @@ export class Host {
             }
             // We need to randomize `#ensureConnections()` so that two peers don't try to connect to each other at
             // the exact same time (immediately upon receiving the message).
-            const timer = Math.round(Math.random() * 1000);
-            this.#log(`Received data from ${conn.peer} (will wait ${timer}ms for connections)`, data);
+            this.#log(`Received data from ${conn.peer}`, data);
 
             this.#port.postMessage(data);
-            setTimeout(() => this.#ensureConnections(data.friends, conn), timer);
+            this.#ensureConnections(data.friends, conn);
         });
 
         conn.on("close", () => {
@@ -129,6 +140,7 @@ export class Host {
         });
     }
 
+    /** Merge our party with another streamer */
     public connect(hostId: string): void {
         this.#log(`Opening new peer connection to ${hostId}`);
 
@@ -139,6 +151,7 @@ export class Host {
         conn.on("open", () => this.#handleConnect(conn, false));
     }
 
+    /** Disconnect from our party */
     public destroy(): void {
         this.#peer.destroy();
     }

@@ -1,30 +1,31 @@
+import { Friend } from "./Friend";
+
+/** A type of message, both local and remote */
 export enum MessageType {
     Video = "video",
     Poll = "poll"
 }
 
-export interface Friend {
-    id: string;
-    muted: boolean;
-    title: string;
-}
-
+/** The latest HTMLVideoElement status */
 export interface LocalVideoMessage {
     type: MessageType.Video;
     currentTime: number;
     paused: boolean;
 }
 
+/** Request to get the latest HTMLVideoElement status */
 export interface LocalPollMessage {
     type: MessageType.Poll;
 }
 
+/** Party metadata added to every network message */
 export interface RemoteMessageExtensions {
     friends: Friend[];
 }
 
-// A local message is transmitted in/out of the tab frame
+/** Message sent to the tab frame from the background process */
 export type LocalInMessage = LocalPollMessage | LocalVideoMessage;
+/** Message sent to the background process from the tab frame */
 export type LocalOutMessage = LocalVideoMessage;
-// A remote message is transmitted through PeerJS
+/** Message sent to a peer from the background process */
 export type RemoteMessage = LocalOutMessage & RemoteMessageExtensions;

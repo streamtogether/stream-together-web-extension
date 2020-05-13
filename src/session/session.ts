@@ -38,7 +38,9 @@ export function connect(): void {
             transmitEvent();
         }
 
-        addListeners();
+        // Don't re-add the listeners until this change is fully propagated (so we avoid
+        // re-emitting an event to everyone when they're trying to handle the previous.
+        setTimeout(addListeners, 15);
     }
     /* eslint-enable @typescript-eslint/no-use-before-define */
 
