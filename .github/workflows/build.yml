@@ -16,5 +16,5 @@ jobs:
             - run: npm run build
             - uses: actions/upload-artifact@v1
               with:
-                  name: chrome-extension-stream-party
+                  name: chrome-extension-stream-together
                   path: dist/

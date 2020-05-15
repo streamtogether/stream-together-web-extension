@@ -1,8 +1,8 @@
-# Stream Party
+# Stream Together
 
-[![Build](https://github.com/streamparty/chrome-extension-stream-party/workflows/Build/badge.svg)](https://github.com/streamparty/chrome-extension-stream-party/actions?query=workflow%3ABuild)
+[![Build](https://github.com/streamtogether/chrome-extension-stream-together/workflows/Build/badge.svg)](https://github.com/streamtogether/chrome-extension-stream-together/actions?query=workflow%3ABuild)
 [![Discord](https://img.shields.io/discord/702897660448866365?logo=discord)](https://discord.gg/uBrhkxB)
-[![Chrome Web Store](https://img.shields.io/badge/chrome-install-blue?logo=google-chrome)](https://chrome.google.com/webstore/detail/mifelkkomponlfmpiomaohdcjjjnalja)
+[![Chrome Web Store](https://img.shields.io/badge/chrome-download-blue?logo=google-chrome)](https://chrome.google.com/webstore/detail/mifelkkomponlfmpiomaohdcjjjnalja)
 
 Watch any video together with friends.
 
@@ -12,11 +12,11 @@ Play a video on any streaming site, and playback & play/pause will
 stay synchronized across all your friends. Just make sure everyone
 has the extension.
 
-1. Tell everyone to install the Stream Party extension
+1. Tell everyone to install the Stream Together extension
 2. Launch any video on any streaming service
-3. Click the Stream Party button in your browser toolbar, and leave the Host ID blank
+3. Click the Stream Together button in your browser toolbar, and leave the Host ID blank
 4. Share the link with your group
-5. Have each friend click the Stream Party button—it should automatically enter the ID.
+5. Have each friend click the Stream Together button—it should automatically enter the ID.
 
 You should get a notification as your friends join the party.
 
@@ -31,9 +31,7 @@ Supported websites:
     us know of a site that isn't working the way it should.
 
 This project is open source. See our roadmap, fix bugs or help out at:
-[https://github.com/streamparty/chrome-extension-stream-party][github]
-
-[github]: https://github.com/streamparty/chrome-extension-stream-party
+https://github.com/streamtogether/chrome-extension-stream-together
 
 ## Development
 
@@ -44,7 +42,7 @@ project locally.
 1. Run `npm install`
 1. Run `npm start`
 1. Go to Google Chrome > ... > More Tools > Extensions
-1. Remove any Stream Party extension previously installed
+1. Remove any Stream Together extension previously installed
 1. Select "Load Unpacked"
 1. Select the `dist/` folder of the cloned repository
 
