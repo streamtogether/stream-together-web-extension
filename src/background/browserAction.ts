@@ -11,7 +11,7 @@ chrome.browserAction.onClicked.addListener(tab => {
     }
 
     const { urlParams } = parseURL(tabUrl);
-    const joinId = prompt("TBD: Host ID or blank:", urlParams.get("watchparty") || "");
+    const joinId = prompt("Enter the host ID to join a party. Otherwise keep this field blank.", urlParams.get("watchparty") || "");
 
     chrome.tabs.executeScript(tabId, {
         file: "js/session.js",
