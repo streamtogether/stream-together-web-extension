@@ -3,6 +3,11 @@
     "name": "Stream Together",
     "description": "Watch any video together with friends.",
     "version": "0.0.4",
+    "icons": {
+        "16": "logo16.png",
+        "48": "logo48.png",
+        "128": "logo128.png"
+    },
     "background": {
         "scripts": ["js/background.js"],
         "persistent": false
