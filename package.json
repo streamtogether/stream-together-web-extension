@@ -19,6 +19,7 @@
     "homepage": "https://github.com/mrsheepsheep/watchparty#readme",
     "devDependencies": {
         "@types/chrome": "0.0.107",
+        "@types/debug": "^4.1.5",
         "@typescript-eslint/eslint-plugin": "^2.31.0",
         "@typescript-eslint/parser": "^2.31.0",
         "copy-webpack-plugin": "^5.1.1",
@@ -47,6 +48,7 @@
         ]
     },
     "dependencies": {
+        "debug": "^4.1.1",
         "peerjs": "^1.2.0"
     }
 }

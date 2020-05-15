@@ -21,8 +21,8 @@ chrome.browserAction.onClicked.addListener(tab => {
     (function next(i): void {
         const host = sessions.get(tabId);
 
-        if (host && host.isReady && host.id) {
-            const hostId = host.id;
+        if (host?.personalData) {
+            const hostId = host.personalData.id;
 
             chrome.browserAction.setBadgeText({
                 text: "0",

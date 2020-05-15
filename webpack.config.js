@@ -3,7 +3,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     mode: "production",
-    devtool: "source-map",
+    devtool: "inline-source-map",
     entry: {
         background: Path.join(__dirname, "src", "background", "background.ts"),
         session: Path.join(__dirname, "src", "session", "session.ts")
