@@ -39,16 +39,9 @@ module.exports = {
         extensions: [".ts", ".svelte", ".mjs", ".js"]
     },
     plugins: [
-        new CopyPlugin(
-            [
-                {
-                    from: ".",
-                    to: ".."
-                }
-            ],
-            {
-                context: "public"
-            }
+        new CopyPlugin({
+            patterns: [{ from: "public", to: ".." }]
+          }
         )
     ]
 };

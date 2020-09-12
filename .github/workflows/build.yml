@@ -9,6 +9,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
+            - uses: jossef/action-set-json-field@v1
+              with:
+                  file: package.json
+                  field: version
+                  value: ${{ github.run_number }}.0.0
+            - uses: jossef/action-set-json-field@v1
+              with:
+                  file: public/manifest.json
+                  field: version
+                  value: ${{ github.run_number }}.0.0
             - uses: actions/setup-node@v1
               with:
                   node-version: "12.x"
