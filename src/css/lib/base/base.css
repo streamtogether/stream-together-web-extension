@@ -1,0 +1,22 @@
+html {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--background);
+}
+
+.hidden,
+[hidden] {
+  display: none !important;
+}

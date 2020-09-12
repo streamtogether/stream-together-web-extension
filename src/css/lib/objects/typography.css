@@ -1,0 +1,22 @@
+body {
+  color: var(--text-color);
+  font-size: var(--base-font-size);
+  font-family: var(--font-family-sans-serif);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+  color: var(--heading-color);
+  padding: 1rem 0;
+  margin: 0;
+}
+
+p {
+  padding: 1em 0;
+  margin: 0;
+}

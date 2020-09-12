@@ -1,0 +1,144 @@
+@import "lib/framework.css";
+
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+  width: 1.125em;
+}
+
+.popup {
+  width: 350px;
+}
+
+.page header {
+  background: var(--primary);
+}
+
+.page header h1 {
+  color: var(--light);
+  margin: 0 1rem;
+}
+
+.page main {
+  padding: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page header {
+    color: var(--heading-color);
+  }
+}
+
+/* "Looking" module */
+.looking {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  animation-name: ckw;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  transform-origin: 50% 50%;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+}
+
+@keyframes ckw {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* "Tryagain" module */
+.tryagain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tryagain p {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.tryagain > .icon {
+  width: 50px;
+  height: 50px;
+  margin: 10px;
+}
+
+/* "Option" module */
+.option form {
+  display: block;
+  padding-top: 20px;
+}
+
+/* "Info" */
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.tabs label {
+  flex-grow: 1;
+  padding: 0.8em;
+  text-align: center;
+  cursor: pointer;
+  border-bottom: 1px solid var(--text-color);
+}
+
+.tabs .panel {
+  width: 100%;
+  display: none;
+}
+
+.tabs input:checked + label {
+  color: var(--light);
+  background: var(--primary);
+}
+
+.tabs #party:checked ~ .party,
+.tabs #people:checked ~ .people {
+  display: block;
+}
+
+.tabs .peeps {
+  padding: 0;
+  list-style: none;
+}
+
+.tabs li {
+  padding: 5px 0;
+  display: flex;
+  align-items: center;
+}
+
+.tabs .peeps li span.avatar {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  background: var(--warning);
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.tabs .peeps li span.timestamp {
+  flex-grow: 1;
+  text-align: right;
+  font-size: 0.8rem;
+}
