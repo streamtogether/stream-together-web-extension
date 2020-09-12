@@ -1,15 +1,8 @@
-import { LocalInMessage, LocalOutMessage, MessageType } from "../Message";
+import { LocalInMessage, LocalOutMessage, MessageType } from "../SessionPort";
 import { browser } from "webextension-polyfill-ts";
 
-export function connect(): void {
-    const videoSearch = document.querySelector("video");
-    if (!videoSearch) {
-        return;
-    }
-
-    // See https://www.reddit.com/r/typescript/comments/beafzw/how_do_i_leverage_type_inference_for_nested/
-    const video = videoSearch;
-    const port = browser.runtime.connect();
+function connect(video: HTMLVideoElement): void {
+    const port = browser.runtime.connect(undefined, { name: "session" });
 
     function transmitEvent(): void {
         const message: LocalOutMessage = {
@@ -64,4 +57,18 @@ export function connect(): void {
     });
 }
 
-connect();
+export function search(): void {
+    (function next(i): void {
+        const videoSearch = document.querySelector("video");
+        if (videoSearch) {
+            connect(videoSearch);
+            return;
+        }
+
+        if (i < 20) {
+            setTimeout(() => next(++i), 500);
+        }
+    })(0);
+}
+
+search();

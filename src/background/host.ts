@@ -1,23 +1,64 @@
 import Debug from "debug";
 import Peer from "peerjs";
-import { LocalOutMessage, LocalPollMessage, MessageType, RemoteMessage } from "../Message";
+import * as SessionPort from "../SessionPort";
 import { Friend, FriendConnected } from "../Friend";
 import { Runtime } from "webextension-polyfill-ts";
+import * as PopupPort from "../PopupPort";
+import EventEmitter from "eventemitter3";
+import { updateURL } from "../url";
 
-export class Host {
-    #log = Debug("peer:disconnected");
+export enum HostEvent {
+    /** The tab has detected a compatible video */
+    VideoDetected = "videoDetected",
+    /** The user has selected to join or host a session */
+    Connected = "connected",
+    /** A member has joined or left the session */
+    FriendsChanged = "friendsChanged"
+}
 
-    /** Our connection to the browser tab */
-    #port: Runtime.Port;
-    /** Our network connection for listening for joiners */
-    #peer = new Peer();
+export class Host extends EventEmitter {
+    #log = Debug("peer:offline");
+
+    /** Our connection to the browser tab, if a video is detected */
+    #port: Runtime.Port | null = null;
+    /** Our network connection for listening for joiners, if the user has chosen to host or join */
+    #peer: Peer | null = null;
     /** All the people in this party (except ourselves), and their metadata */
     #friends = new Map<string, FriendConnected>();
+    /** Any popup or other observers watching this connection */
+    #observers = new Set<Runtime.Port>();
     /** Metadata about ourselves, to share with others */
     public personalData: Friend | null = null;
-    /** Event handler for updating the badge or showing notification */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public onChangeFriends: (count: number, delta: number) => void = () => {};
+
+    /**
+     * Notify any popup or other observers of the current connection state
+     */
+    #notifyObservers = (): void => {
+        let currentState = PopupPort.State.VideoIncompatible;
+        if (!this.#port) {
+            currentState = PopupPort.State.VideoSearching;
+        } else if (!this.#peer) {
+            currentState = PopupPort.State.ReadyToJoin;
+        } else {
+            currentState = PopupPort.State.InSession;
+        }
+
+        const message: PopupPort.LocalStateMessage = {
+            type: PopupPort.MessageType.State,
+            state: currentState,
+            hostId: this.personalData?.id || null,
+            videoURL: this.videoURL,
+            friends: Array.from(this.#friends.values()).map(friend => ({
+                ...friend,
+                conn: undefined
+            }))
+        };
+
+        this.#observers.forEach(port => {
+            this.#log("Notifying observers of state", message);
+            port.postMessage(message);
+        });
+    };
 
     /**
      * Ensures that all friends described by someone in this party are already part of our group.
@@ -46,10 +87,10 @@ export class Host {
                     ...member,
                     conn
                 });
-                this.onChangeFriends(this.#friends.size, 1);
+                this.emit(HostEvent.FriendsChanged, this.#friends.size, 1);
             } else if (member.id < this.personalData.id) {
                 // connect to new peer if we're alphanumerically higher (this prevents double-connecting)
-                this.connect(member.id);
+                this.join(member.id);
             }
         }
     };
@@ -77,10 +118,10 @@ export class Host {
             };
 
             this.#friends.set(conn.peer, friend);
-            this.onChangeFriends(this.#friends.size, 1);
+            this.emit(HostEvent.FriendsChanged, this.#friends.size, 1);
         }
 
-        conn.on("data", (data: RemoteMessage) => {
+        conn.on("data", (data: SessionPort.RemoteMessage) => {
             if (!this.personalData) {
                 return;
             }
@@ -88,35 +129,37 @@ export class Host {
             // the exact same time (immediately upon receiving the message).
             this.#log(`Received data from ${conn.peer}`, data);
 
-            this.#port.postMessage(data);
+            this.#port?.postMessage(data);
             this.#ensureConnections(data.friends, conn);
         });
 
         conn.on("close", () => {
             this.#friends.delete(conn.peer);
-            this.onChangeFriends(this.#friends.size, -1);
+            this.emit(HostEvent.FriendsChanged, this.#friends.size, -1);
         });
     };
 
-    public constructor(port: Runtime.Port) {
+    public constructor(
+        /** The sharable URL of the video that can pre-populate a joinId */
+        public videoURL: string
+    ) {
+        super();
+
+        this.addListener(HostEvent.VideoDetected, this.#notifyObservers);
+        this.addListener(HostEvent.Connected, this.#notifyObservers);
+        this.addListener(HostEvent.FriendsChanged, this.#notifyObservers);
+    }
+
+    public connect(port: Runtime.Port): void {
+        this.#log("Video discovered by session");
         this.#port = port;
 
-        this.#peer.on("open", (id: string) => {
-            this.#log = Debug(`peer:${id}`);
-            this.#log("Connected to broker server");
-            this.personalData = {
-                id,
-                title: id,
-                muted: false
-            };
-        });
-
-        port.onMessage.addListener((message: LocalOutMessage) => {
+        port.onMessage.addListener((message: SessionPort.LocalOutMessage) => {
             if (!this.personalData) {
                 return;
             }
 
-            const data: RemoteMessage = {
+            const data: SessionPort.RemoteMessage = {
                 ...message,
                 friends: [
                     this.personalData,
@@ -131,18 +174,15 @@ export class Host {
             this.#friends.forEach(friend => friend.conn.send(data));
         });
 
-        this.#peer.on("connection", (conn: Peer.DataConnection) => {
-            this.#handleConnect(conn, true);
-            // for incoming connections, poll our video and transmit the status
-            setTimeout(() => {
-                const message: LocalPollMessage = { type: MessageType.Poll };
-                port.postMessage(message);
-            }, 500);
-        });
+        this.emit(HostEvent.VideoDetected);
     }
 
     /** Merge our party with another streamer */
-    public connect(hostId: string): void {
+    public join(hostId: string): void {
+        if (!this.#peer) {
+            return;
+        }
+
         this.#log(`Opening new peer connection to ${hostId}`);
 
         const conn = this.#peer.connect(hostId, {
@@ -152,8 +192,57 @@ export class Host {
         conn.on("open", () => this.#handleConnect(conn, false));
     }
 
+    public observe(port: Runtime.Port): void {
+        this.#observers.add(port);
+
+        this.#log("Adding new observer for Host session");
+
+        port.onDisconnect.addListener(() => {
+            this.#observers.delete(port);
+        });
+
+        port.onMessage.addListener((message: PopupPort.LocalOutMessage) => {
+            this.#log("Establishing PeerJS session");
+            this.#peer = new Peer();
+
+            this.#peer.on("open", (id: string) => {
+                this.#log = Debug(`peer:${id}`);
+                this.#log("Connected to broker server");
+                this.personalData = {
+                    id,
+                    title: id,
+                    muted: false
+                };
+
+                const shareURL = updateURL(this.videoURL, urlParams => {
+                    urlParams.set("watchparty", id);
+                });
+
+                if (message.joinId) {
+                    this.join(message.joinId);
+                }
+
+                this.videoURL = shareURL.toString();
+                this.emit(HostEvent.Connected);
+            });
+
+            this.#peer.on("connection", (conn: Peer.DataConnection) => {
+                this.#handleConnect(conn, true);
+                // for incoming connections, poll our video and transmit the status
+                setTimeout(() => {
+                    const message: SessionPort.LocalPollMessage = { type: SessionPort.MessageType.Poll };
+                    this.#port?.postMessage(message);
+                }, 500);
+            });
+        });
+
+        // initial propagation
+        this.#notifyObservers();
+    }
+
     /** Disconnect from our party */
     public destroy(): void {
-        this.#peer.destroy();
+        this.removeAllListeners();
+        this.#peer?.destroy();
     }
 }
