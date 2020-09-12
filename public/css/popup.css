@@ -7,7 +7,6 @@
   stroke-width: 0;
   stroke: currentColor;
   fill: currentColor;
-  width: 1.125em;
 }
 
 .popup {
@@ -20,7 +19,7 @@
 
 .page header h1 {
   color: var(--light);
-  margin: 0 1rem;
+  margin: 0 0 0 1rem;
 }
 
 .page main {
@@ -77,12 +76,6 @@
   width: 50px;
   height: 50px;
   margin: 10px;
-}
-
-/* "Option" module */
-.option form {
-  display: block;
-  padding-top: 20px;
 }
 
 /* "Info" */

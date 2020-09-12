@@ -1,36 +1,42 @@
 <script lang="typescript">
-  import { createEventDispatcher } from "svelte";
   import { State } from "../PopupPort";
   import { Friend } from "../Friend";
 
-  const dispatch = createEventDispatcher();
+  import SVGs from "./components/svgs.svelte";
+  import Searching from "./components/searching.svelte";
+  import Ready from "./components/ready.svelte";
+  import Session from "./components/session.svelte";
+  import Incompatible from "./components/incompatible.svelte";
 
   export let state: State = State.VideoSearching;
   export let hostId: string | null = null;
   export let friends: Friend[] = [];
   export let videoURL: string = '';
   export let joinId: string = '';
-
-  function joinSession() {
-    dispatch('join', joinId);
-  }
-  function hostSession() {
-    dispatch('host');
-  }
 </script>
 
-{#if state === State.VideoSearching}
-    <p>Searching for video...</p>
-{:else if state === State.ReadyToJoin}
-    <input bind:value={joinId} />
-    <button on:click={joinSession}>Join</button>
-    <button on:click={hostSession}>Host</button>
-{:else if state === State.InSession}
-    <p>Enjoy, {hostId}!</p>
-    <input bind:value={videoURL} />
-    {#each friends as friend}
-        <p>Friend: {friend.id}</p>
-    {/each}
-{:else if state === State.VideoIncompatible}
-    <p>No video detected</p>
-{/if}
+<SVGs />
+<div class="popup">
+    <section class="page">
+        <header>
+            <h1>
+                <svg class="icon"><use xlink:href="#icon-users"></use></svg>
+                Stream Together
+            </h1>
+        </header>
+
+        {#if state === State.VideoSearching}
+            <Searching />
+        {:else if state === State.ReadyToJoin}
+            <Ready joinId={joinId}  on:join on:host />
+        {:else if state === State.InSession}
+            <Session
+                hostId={hostId}
+                friends={friends}
+                videoURL={videoURL}
+            />
+        {:else if state === State.VideoIncompatible}
+            <Incompatible />
+        {/if}
+    </section>
+</div>
