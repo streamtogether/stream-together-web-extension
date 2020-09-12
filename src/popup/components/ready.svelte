@@ -14,7 +14,7 @@
   function joinSession() {
     if (joinId.includes('://')) {
       const url = parseURL(joinId);
-      joinId = url.urlParams.get('watchparty');
+      joinId = url.urlParams.get('watchparty') || '';
     }
 
     if (joinId) {

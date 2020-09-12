@@ -4,8 +4,8 @@
     export let videoURL: string = '';
     export let friends: Friend[] = [];
 
-    function copyVideoURL(event) {
-      event.target.select();
+    function copyVideoURL(event: MouseEvent) {
+      (event.target as HTMLInputElement).select();
     }
 </script>
 

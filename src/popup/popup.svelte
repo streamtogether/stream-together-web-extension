@@ -9,7 +9,6 @@
   import Incompatible from "./components/incompatible.svelte";
 
   export let state: State = State.VideoSearching;
-  export let hostId: string | null = null;
   export let friends: Friend[] = [];
   export let videoURL: string = '';
   export let joinId: string = '';
@@ -31,7 +30,6 @@
             <Ready joinId={joinId}  on:join on:host />
         {:else if state === State.InSession}
             <Session
-                hostId={hostId}
                 friends={friends}
                 videoURL={videoURL}
             />
