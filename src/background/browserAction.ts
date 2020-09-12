@@ -1,7 +1,8 @@
 import { sessions } from "./messenger";
 import { updateURL, parseURL } from "./url";
+import { browser } from "webextension-polyfill-ts";
 
-chrome.browserAction.onClicked.addListener(tab => {
+browser.browserAction.onClicked.addListener(tab => {
     const tabId = tab.id || 0;
     const tabUrl = tab.url || "";
 
@@ -13,7 +14,7 @@ chrome.browserAction.onClicked.addListener(tab => {
     const { urlParams } = parseURL(tabUrl);
     const joinId = prompt("Enter the host ID to join a party. Otherwise keep this field blank.", urlParams.get("watchparty") || "");
 
-    chrome.tabs.executeScript(tabId, {
+    browser.tabs.executeScript(tabId, {
         file: "js/session.js",
         allFrames: true
     });
@@ -24,19 +25,19 @@ chrome.browserAction.onClicked.addListener(tab => {
         if (host?.personalData) {
             const hostId = host.personalData.id;
 
-            chrome.browserAction.setBadgeText({
+            browser.browserAction.setBadgeText({
                 text: "0",
                 tabId: tab.id
             });
 
             host.onChangeFriends = (count, delta): void => {
-                chrome.browserAction.setBadgeText({
+                browser.browserAction.setBadgeText({
                     text: `${count}`,
                     tabId: tab.id
                 });
 
-                chrome.notifications.create({
-                    iconUrl: chrome.extension.getURL("logo.png"),
+                browser.notifications.create({
+                    iconUrl: browser.extension.getURL("logo.png"),
                     type: "basic",
                     title: "WatchParty",
                     message:
@@ -49,7 +50,7 @@ chrome.browserAction.onClicked.addListener(tab => {
                 urlParams.set("watchparty", hostId);
             });
 
-            chrome.tabs.executeScript(tabId, {
+            browser.tabs.executeScript(tabId, {
                 code: `history.replaceState(null, null, ${JSON.stringify(`${shareURL.href}`)});`
             });
 

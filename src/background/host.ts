@@ -2,12 +2,13 @@ import Debug from "debug";
 import Peer from "peerjs";
 import { LocalOutMessage, LocalPollMessage, MessageType, RemoteMessage } from "../Message";
 import { Friend, FriendConnected } from "../Friend";
+import { Runtime } from "webextension-polyfill-ts";
 
 export class Host {
     #log = Debug("peer:disconnected");
 
     /** Our connection to the browser tab */
-    #port: chrome.runtime.Port;
+    #port: Runtime.Port;
     /** Our network connection for listening for joiners */
     #peer = new Peer();
     /** All the people in this party (except ourselves), and their metadata */
@@ -97,7 +98,7 @@ export class Host {
         });
     };
 
-    public constructor(port: chrome.runtime.Port) {
+    public constructor(port: Runtime.Port) {
         this.#port = port;
 
         this.#peer.on("open", (id: string) => {

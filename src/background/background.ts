@@ -1,4 +1,4 @@
 import "./browserAction";
 import "./messenger";
 
-localStorage.debug = "peer:*";
+localStorage.setItem("debug", "peer:*");

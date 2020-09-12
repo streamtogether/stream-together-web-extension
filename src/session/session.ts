@@ -1,4 +1,5 @@
 import { LocalInMessage, LocalOutMessage, MessageType } from "../Message";
+import { browser } from "webextension-polyfill-ts";
 
 export function connect(): void {
     const videoSearch = document.querySelector("video");
@@ -8,7 +9,7 @@ export function connect(): void {
 
     // See https://www.reddit.com/r/typescript/comments/beafzw/how_do_i_leverage_type_inference_for_nested/
     const video = videoSearch;
-    const port = chrome.runtime.connect();
+    const port = browser.runtime.connect();
 
     function transmitEvent(): void {
         const message: LocalOutMessage = {
