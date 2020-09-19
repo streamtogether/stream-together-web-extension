@@ -1,5 +1,5 @@
 {
-    "name": "chrome-extension-stream-together",
+    "name": "stream-together-web-extension",
     "version": "0.0",
     "description": "Watch any video together with friends.",
     "scripts": {
