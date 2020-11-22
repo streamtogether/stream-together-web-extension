@@ -1,6 +1,6 @@
 import Popup from "./popup.svelte";
 import { browser } from "webextension-polyfill-ts";
-import { LocalInMessage, LocalStartMessage, MessageType } from "../PopupPort";
+import { LocalInMessage, LocalResetMessage, LocalStartMessage, MessageType } from "../PopupPort";
 import { parseURL } from "../url";
 
 const popup = new Popup({
@@ -25,6 +25,13 @@ popup.$on("host", () => {
     port.postMessage(message);
 });
 
+popup.$on("retry", () => {
+    const message: LocalResetMessage = {
+        type: MessageType.Reset
+    };
+    port.postMessage(message);
+});
+
 port.onMessage.addListener((event: LocalInMessage) => {
     if (event.type === MessageType.State) {
         const url = parseURL(event.videoURL);
@@ -33,6 +40,7 @@ port.onMessage.addListener((event: LocalInMessage) => {
             state: event.state,
             friends: event.friends,
             hostId: event.hostId,
+            lastError: event.lastError,
             joinId: url.urlParams.get("watchparty"),
             videoURL: event.videoURL
         });

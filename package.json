@@ -1,6 +1,6 @@
 {
     "name": "stream-together-web-extension",
-    "version": "0.0",
+    "version": "0.0.0",
     "description": "Watch any video together with friends.",
     "scripts": {
         "start": "webpack --watch",

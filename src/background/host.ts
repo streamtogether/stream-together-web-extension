@@ -23,6 +23,8 @@ export class Host extends EventEmitter {
     #port: Runtime.Port | null = null;
     /** Our network connection for listening for joiners, if the user has chosen to host or join */
     #peer: Peer | null = null;
+    /** The last error that occurred with our PeerJS session */
+    #lastPeerError: Error | null = null;
     /** All the people in this party (except ourselves), and their metadata */
     #friends = new Map<string, FriendConnected>();
     /** Any popup or other observers watching this connection */
@@ -39,6 +41,10 @@ export class Host extends EventEmitter {
             currentState = PopupPort.State.VideoSearching;
         } else if (!this.#peer) {
             currentState = PopupPort.State.ReadyToJoin;
+        } else if (this.#lastPeerError) {
+            currentState = PopupPort.State.ConnectionError;
+        } else if (!this.personalData) {
+            currentState = PopupPort.State.Connecting;
         } else {
             currentState = PopupPort.State.InSession;
         }
@@ -48,6 +54,12 @@ export class Host extends EventEmitter {
             state: currentState,
             hostId: this.personalData?.id || null,
             videoURL: this.videoURL,
+            lastError: this.#lastPeerError
+                ? {
+                      type: ((this.#lastPeerError as unknown) as { type: string }).type,
+                      message: this.#lastPeerError.message
+                  }
+                : null,
             friends: Array.from(this.#friends.values()).map(friend => ({
                 ...friend,
                 conn: undefined
@@ -202,38 +214,54 @@ export class Host extends EventEmitter {
         });
 
         port.onMessage.addListener((message: PopupPort.LocalOutMessage) => {
-            this.#log("Establishing PeerJS session");
-            this.#peer = new Peer();
+            if (message.type === PopupPort.MessageType.Reset) {
+                this.#log("Resetting and retrying session");
+                this.#peer?.destroy();
+                this.#lastPeerError = null;
+                this.#peer = null;
+                this.personalData = null;
+            } else if (message.type === PopupPort.MessageType.Start) {
+                this.#log("Establishing PeerJS session");
+                this.#peer = new Peer();
 
-            this.#peer.on("open", (id: string) => {
-                this.#log = Debug(`peer:${id}`);
-                this.#log("Connected to broker server");
-                this.personalData = {
-                    id,
-                    title: id,
-                    muted: false
-                };
+                this.#peer.on("open", (id: string) => {
+                    this.#log = Debug(`peer:${id}`);
+                    this.#log("Connected to broker server");
+                    this.#lastPeerError = null;
+                    this.personalData = {
+                        id,
+                        title: id,
+                        muted: false
+                    };
 
-                const shareURL = updateURL(this.videoURL, urlParams => {
-                    urlParams.set("watchparty", id);
+                    const shareURL = updateURL(this.videoURL, urlParams => {
+                        urlParams.set("watchparty", id);
+                    });
+
+                    if (message.joinId) {
+                        this.join(message.joinId);
+                    }
+
+                    this.videoURL = shareURL.toString();
+                    this.emit(HostEvent.Connected);
                 });
 
-                if (message.joinId) {
-                    this.join(message.joinId);
-                }
+                this.#peer.on("error", (err: Error) => {
+                    this.#lastPeerError = err;
+                    this.#notifyObservers();
+                });
 
-                this.videoURL = shareURL.toString();
-                this.emit(HostEvent.Connected);
-            });
+                this.#peer.on("connection", (conn: Peer.DataConnection) => {
+                    this.#handleConnect(conn, true);
+                    // for incoming connections, poll our video and transmit the status
+                    setTimeout(() => {
+                        const message: SessionPort.LocalPollMessage = { type: SessionPort.MessageType.Poll };
+                        this.#port?.postMessage(message);
+                    }, 500);
+                });
+            }
 
-            this.#peer.on("connection", (conn: Peer.DataConnection) => {
-                this.#handleConnect(conn, true);
-                // for incoming connections, poll our video and transmit the status
-                setTimeout(() => {
-                    const message: SessionPort.LocalPollMessage = { type: SessionPort.MessageType.Poll };
-                    this.#port?.postMessage(message);
-                }, 500);
-            });
+            this.#notifyObservers();
         });
 
         // initial propagation
