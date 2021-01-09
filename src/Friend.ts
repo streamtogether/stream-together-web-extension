@@ -5,6 +5,7 @@ export interface Friend {
     id: string;
     muted: boolean;
     title: string;
+    joinedAt: string;
 }
 
 /** An active connection to a known member of the party */

@@ -178,7 +178,8 @@ export class Host extends EventEmitter {
                     ...Array.from(this.#friends.values()).map(friend => ({
                         id: friend.id,
                         title: friend.title,
-                        muted: friend.muted
+                        muted: friend.muted,
+                        joinedAt: friend.joinedAt
                     }))
                 ]
             };
@@ -231,7 +232,8 @@ export class Host extends EventEmitter {
                     this.personalData = {
                         id,
                         title: id,
-                        muted: false
+                        muted: false,
+                        joinedAt: new Date().toLocaleTimeString()
                     };
 
                     const shareURL = updateURL(this.videoURL, urlParams => {
