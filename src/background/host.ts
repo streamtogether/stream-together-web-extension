@@ -19,6 +19,8 @@ export enum HostEvent {
 export class Host extends EventEmitter {
     #log = Debug("peer:offline");
 
+    /** If this tab has a video element */
+    #hasVideo: boolean | null = null;
     /** Our connection to the browser tab, if a video is detected */
     #port: Runtime.Port | null = null;
     /** Our network connection for listening for joiners, if the user has chosen to host or join */
@@ -39,6 +41,8 @@ export class Host extends EventEmitter {
         let currentState = PopupPort.State.VideoIncompatible;
         if (!this.#port) {
             currentState = PopupPort.State.VideoSearching;
+        } else if (!this.#hasVideo) {
+            currentState = PopupPort.State.VideoIncompatible;
         } else if (!this.#peer) {
             currentState = PopupPort.State.ReadyToJoin;
         } else if (this.#lastPeerError) {
@@ -56,7 +60,7 @@ export class Host extends EventEmitter {
             videoURL: this.videoURL,
             lastError: this.#lastPeerError
                 ? {
-                      type: ((this.#lastPeerError as unknown) as { type: string }).type,
+                      type: (this.#lastPeerError as unknown as { type: string }).type,
                       message: this.#lastPeerError.message
                   }
                 : null,
@@ -163,30 +167,39 @@ export class Host extends EventEmitter {
     }
 
     public connect(port: Runtime.Port): void {
-        this.#log("Video discovered by session");
         this.#port = port;
 
         port.onMessage.addListener((message: SessionPort.LocalOutMessage) => {
-            if (!this.personalData) {
-                return;
+            if (message.type == SessionPort.MessageType.Video) {
+                if (this.#hasVideo !== true) {
+                    this.#hasVideo = true;
+                    this.emit(HostEvent.VideoDetected);
+                    this;
+                }
+                if (!this.personalData) {
+                    return;
+                }
+                const data: SessionPort.RemoteMessage = {
+                    ...message,
+                    friends: [
+                        this.personalData,
+                        ...Array.from(this.#friends.values()).map(friend => ({
+                            id: friend.id,
+                            title: friend.title,
+                            muted: friend.muted
+                        }))
+                    ]
+                };
+                this.#friends.forEach(friend => friend.conn.send(data));
+            } else {
+                if (this.#hasVideo !== false) {
+                    this.#hasVideo = false;
+                    this.emit(HostEvent.VideoDetected);
+                }
             }
-
-            const data: SessionPort.RemoteMessage = {
-                ...message,
-                friends: [
-                    this.personalData,
-                    ...Array.from(this.#friends.values()).map(friend => ({
-                        id: friend.id,
-                        title: friend.title,
-                        muted: friend.muted
-                    }))
-                ]
-            };
-            this.#log("Sending data", data);
-            this.#friends.forEach(friend => friend.conn.send(data));
         });
 
-        this.emit(HostEvent.VideoDetected);
+        port.postMessage({ type: SessionPort.MessageType.Poll });
     }
 
     /** Merge our party with another streamer */
