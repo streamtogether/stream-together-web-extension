@@ -1,9 +1,7 @@
 import { LocalInMessage, LocalOutMessage, MessageType } from "../SessionPort";
-import { browser } from "webextension-polyfill-ts";
+import { browser, Runtime } from "webextension-polyfill-ts";
 
-function connect(video: HTMLVideoElement): void {
-    const port = browser.runtime.connect(undefined, { name: "session" });
-
+function connectToVideo(video: HTMLVideoElement, port: Runtime.Port): void {
     function transmitEvent(): void {
         const message: LocalOutMessage = {
             type: MessageType.Video,
@@ -57,6 +55,22 @@ function connect(video: HTMLVideoElement): void {
     });
 }
 
+function connect(video: HTMLVideoElement | null): void {
+    const port = browser.runtime.connect(undefined, { name: "session" });
+    if (video) {
+        connectToVideo(video, port);
+    } else {
+        port.onMessage.addListener((message: LocalInMessage) => {
+            if (message.type == MessageType.Poll) {
+                const message: LocalOutMessage = {
+                    type: MessageType.NoVideo
+                };
+                port.postMessage(message);
+            }
+        });
+    }
+}
+
 export function search(): void {
     (function next(i): void {
         const videoSearch = document.querySelector("video");
@@ -67,6 +81,8 @@ export function search(): void {
 
         if (i < 20) {
             setTimeout(() => next(++i), 500);
+        } else {
+            connect(null);
         }
     })(0);
 }
