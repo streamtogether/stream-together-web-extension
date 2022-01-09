@@ -1,4 +1,4 @@
-<script lang="typescript">
+<script lang="ts">
   import { LocalStateMessage, State } from "../PopupPort";
   import { Friend } from "../Friend";
 
