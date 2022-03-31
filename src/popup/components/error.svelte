@@ -1,4 +1,4 @@
-<script lang="typescript">
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
