@@ -41,7 +41,7 @@
                     <li>
                         <span class="avatar">{friend.id[0]}</span>
                         {friend.id}
-                        <span class="timestamp">synchronized</span>
+                        <span class="timestamp">Arrived at {friend.joinedAt}</span>
                     </li>
                 {/each}
             </ul>
